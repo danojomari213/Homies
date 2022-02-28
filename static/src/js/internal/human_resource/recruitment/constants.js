@@ -9,7 +9,7 @@
 // Base URLs
 const ORIGIN = window.location.origin;
 const BASE_URL_WEB = ORIGIN + '/';
-const BASE_URL_API = `${ BASE_URL_WEB }api/`;
+const BASE_URL_API = `${ BASE_URL_WEB }rms/api/`;
 
 
 // Web File URLs

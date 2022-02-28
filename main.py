@@ -1,6 +1,5 @@
 # Import Packages
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles as sf
 
 
