@@ -5,7 +5,7 @@
  * CONSTANTS
  * ==============================================================================
  */
-const jobPostID = window.location.pathname.split('/')[3];
+const jobPostID = getPathnamePart(1);
 
 
 /**
@@ -108,7 +108,7 @@ initDataTable('#jobPostsDT', {
             data: null,
             render: data => {
                 const jobPostID = data.job_post_id;
-                const requisitionID = data.manpower_request.manpower_request_id;
+                const manpowerRequestID = data.manpower_request.manpower_request_id;
                 const applicants = data.applicants.length > 0
                     ? `
                         <a 
@@ -139,7 +139,7 @@ initDataTable('#jobPostsDT', {
                     <div class="dropdown-divider"></div>
                     <a 
                         class="dropdown-item d-flex"
-                        href="${ ROUTE.WEB.H }manpower-requests/${ requisitionID }"
+                        href="${ ROUTE.WEB.H }manpower-requests/${ manpowerRequestID }"
                     >
                         <div style="width: 2rem"><i class="fas fa-file-alt mr-1"></i></div>
                         <div>

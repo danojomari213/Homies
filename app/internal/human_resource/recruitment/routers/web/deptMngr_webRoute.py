@@ -36,22 +36,25 @@ AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Department Manager"
 
 
+# Redirect Root
+REDIRECT_ROOT = "/rms/dm"
+
+
 # ===========================================================
 # WEB ROUTES
 # ===========================================================
 
 
-# Department Head Dashboard
+# Redirect if url is blank
 @router.get("", response_class=HTMLResponse)
 def render(req: Request, user_data: dict = Depends(get_token)):
+
+    # Check if user is not authorized
     if not hasAccess(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
         return errTemplate.page_not_found(req)
-    return template.TemplateResponse(TEMPLATES_PATH + "index.html", {
-        "request": req,
-        "page_title": "Main Dashboard",
-        "sub_title": "Manage your tasks and activities here using this dashboard",
-        "active_navlink": "Main Dashboard"
-    })
+    
+    # If authorized, return template response
+    return RedirectResponse(f"{REDIRECT_ROOT}dashboard")
 
 
 # Department Head Dashboard
@@ -326,7 +329,7 @@ def render(req: Request, menu: Optional[str] = None, user_data: dict = Depends(g
 
     # Check if menu is not declared, redirect to appropriate page
     if not menu:
-        return RedirectResponse("/dm/general-tasks?menu=for-new-employees")
+        return RedirectResponse(f"{REDIRECT_ROOT}general-tasks?menu=for-new-employees")
     
     # Check if menu is valid
     if menu not in ["for-new-employees", "for-the-team", "my-tasks"]:

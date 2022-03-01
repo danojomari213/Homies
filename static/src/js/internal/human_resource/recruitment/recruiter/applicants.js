@@ -7,7 +7,7 @@
 */
 
 /** Job Post ID from the URL */
-const jobPostID = window.location.pathname.split("/")[3];
+const jobPostID = getPathnamePart(1);
 
 
 /**
@@ -194,6 +194,7 @@ onHideModal('#applicantDetailsModal', () => {
 
 /** Set Job Post Summary */
 ifSelectorExist('#jobPostSummary', () => {
+    const jobPostID = getPathnamePart(2);
     GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID }`, {
         success: result => {
 
@@ -247,6 +248,7 @@ ifSelectorExist('#jobPostSummary', () => {
 
 // Applicants Per Job Analytics
 const applicantsPerJobAnalytics = () => {
+    const jobPostID = getPathnamePart(2);
     GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID }/applicants/analytics`, {
         success: result => {
 

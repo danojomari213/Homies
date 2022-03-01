@@ -7,7 +7,7 @@
  */
 
 // Get the onboardingEmployeeID from the URL
-const onboardingEmployeeID = window.location.pathname.split('/')[3];
+const onboardingEmployeeID = getPathnamePart(1);
 
 
 /**

@@ -36,22 +36,26 @@ AUTHORIZED_ROLE = "Hiring Manager"
 
 
 
+# Redirect Root
+REDIRECT_ROOT = "/rms/h/"
+
+
+
 # ===========================================================
 # WEB ROUTES
 # ===========================================================
 
 
-# Department Head Dashboard
+# Redirect if url is blank
 @router.get("", response_class=HTMLResponse)
 def render(req: Request, user_data: dict = Depends(get_token)):
+
+    # Check if user is not authorized
     if not hasAccess(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
         return errTemplate.page_not_found(req)
-    return template.TemplateResponse(TEMPLATES_PATH + "index.html", {
-        "request": req,
-        "page_title": "Main Dashboard",
-        "sub_title": "Hiring Manager manages all selected applicants",
-        "active_navlink": "Main Dashboard"
-    })
+    
+    # If authorized, return template response
+    return RedirectResponse(f"{REDIRECT_ROOT}dashboard")
 
 
 # Department Head Dashboard
@@ -199,7 +203,7 @@ def render(
     if not db.query(JobPost).filter(JobPost.job_post_id == job_post_id).first():
         return errTemplate.page_not_found(req)
 
-    return RedirectResponse(f"/h/job-posts/{job_post_id}/applicants/for-screening")
+    return RedirectResponse(f"{REDIRECT_ROOT}job-posts/{job_post_id}/applicants/for-screening")
 
 
 # Applicants Per Job Post (For Screening)

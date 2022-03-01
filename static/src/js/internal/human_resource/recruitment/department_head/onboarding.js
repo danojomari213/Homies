@@ -7,7 +7,7 @@
  */
 
 /** Onboarding Employee ID */
-const onboardingEmployeeID = window.location.pathname.split("/")[3];
+const onboardingEmployeeID = getPathnamePart(2);
 
 
 /**
@@ -231,12 +231,12 @@ const getOnboardingEmployeeDetails = () => {
                         'On Going': () => onGoing++,
                         'Completed': () => completed++
                     }
-    
+
                     onboardingEmployeeTasks.forEach(t => {
                         taskProgressIterator[t.status]();
                         sum++;
                     });
-    
+
                     // Configure Onboarding Employee Task Doughnut Chart
                     chartConfig.data = {
                         labels: ['Pending','On Going','Completed',],

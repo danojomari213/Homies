@@ -156,7 +156,8 @@ ifSelectorExist('#manpowerRequestAnalytics', () => manpowerRequestAnalytics());
 
 /** View Manpower Request */
 ifSelectorExist('#manpowerRequestFormDocument', () => {
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
+
     GET_ajax(`${ ROUTE.API.DH }manpower-requests/${ manpowerRequestID }`, {
         success: result => {
 

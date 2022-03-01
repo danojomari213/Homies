@@ -5,7 +5,7 @@
  * CONSTANTS
  * ==============================================================================
  */
-const jobPostID = window.location.pathname.split('/')[3];
+const jobPostID = getPathnamePart(1);
 
 
 /**

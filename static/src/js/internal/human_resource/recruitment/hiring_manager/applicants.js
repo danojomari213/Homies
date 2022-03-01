@@ -7,7 +7,7 @@
 */
 
 // Get Job Post ID from the URL
-const jobPostID = window.location.pathname.split("/")[3];
+const jobPostID = getPathnamePart(3);
 
 
 /**

@@ -19,10 +19,7 @@ import shutil, uuid
 
 
 # Router Instance
-router = APIRouter(
-    prefix = "/api/department-head",
-    tags = ["Department Head API"]
-)
+router = APIRouter(prefix = "/api/department-head")
 
 
 # Authorization
@@ -31,19 +28,19 @@ AUTHORIZED_ROLE = "Department Head"
 
 
 # User Information
-# @router.get("/info", response_model = user.ShowUserInfo)
-# def get_user_info(
-#     db: Session = Depends(get_db), 
-#     user_data: UserData = Depends(get_user)
-# ):
-#     try:
-#         if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
-#             user_info = db.query(Employee).filter(Employee.employee_id == user_data.employee_id).first()
-#             if not user_info:
-#                 raise HTTPException(status_code = 404, detail = {"message": "Employee does not exist"})
-#             return user_info
-#     except Exception as e:
-#         print(e)
+@router.get("/info", response_model = user.ShowUserInfo)
+def get_user_info(
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+            user_info = db.query(Employee).filter(Employee.employee_id == user_data.employee_id).first()
+            if not user_info:
+                raise HTTPException(status_code = 404, detail = {"message": "Employee does not exist"})
+            return user_info
+    except Exception as e:
+        print(e)
 
 # ====================================================================
 # MANPOWER REQUESTS

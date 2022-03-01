@@ -32,12 +32,16 @@ AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Department Head"
 
 
+# Redirect Root
+REDIRECT_ROOT = "/rms/dh/"
+
+
 # ===========================================================
 # WEB ROUTES
 # ===========================================================
 
 
-# Home Page
+# Redirect if url is blank
 @router.get("", response_class=HTMLResponse)
 def render(req: Request, user_data: dict = Depends(get_token)):
 
@@ -46,7 +50,7 @@ def render(req: Request, user_data: dict = Depends(get_token)):
         return errTemplate.page_not_found(req)
     
     # If authorized, return template response
-    return RedirectResponse("/rms/dh/dashboard")
+    return RedirectResponse(f"{REDIRECT_ROOT}dashboard")
 
 
 # Department Head Dashboard

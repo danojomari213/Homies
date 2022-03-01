@@ -7,10 +7,10 @@
  */
 
 // Get interview schedule ID from URL
-const interviewScheduleID = window.location.pathname.split("/")[3];
+const interviewScheduleID = getPathnamePart(1);
 
 // Get interviewee ID form URL
-const intervieweeID = window.location.pathname.split("/")[3];
+const intervieweeID = getPathnamePart(1);
 
 
 /**

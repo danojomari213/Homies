@@ -34,26 +34,26 @@ AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Talent Recruiter"
 
 
+# Redirect Root
+REDIRECT_ROOT =  "/rms/r/"
+
+
 # ===========================================================
 # WEB ROUTES
 # ===========================================================
 
 
-# Home
+# Redirect if url is blank
 @router.get("", response_class=HTMLResponse)
-def dashboard(req: Request, user_data: dict = Depends(get_token)):
-    
+def render(req: Request, user_data: dict = Depends(get_token)):
+
     # Check if user is not authorized
     if not hasAccess(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
         return errTemplate.page_not_found(req)
     
-    # If no error, return template response
-    return template.TemplateResponse(TEMPLATES_PATH + "index.html", {
-        "request": req,
-        "page_title": "Main Dashboard",
-        "sub_title": "Recruiter manages all applicants to be selected",
-        "active_navlink": "Main Dashboard"
-    })
+    # If authorized, return template response
+    return RedirectResponse(f"{REDIRECT_ROOT}dashboard")
+
 
 
 # Department Head Dashboard
@@ -281,7 +281,7 @@ def render(
 
     # Check if menu is not declared, redirect with default value
     if menu not in ['for-evaluation', 'evaluated', 'rejected']:
-        return RedirectResponse(f"/r/job-posts/{job_post_id}/applicants?menu=for-evaluation")
+        return RedirectResponse(f"{REDIRECT_ROOT}job-posts/{job_post_id}/applicants?menu=for-evaluation")
 
     # If no error, return template response
     return template.TemplateResponse(TEMPLATES_PATH + "applicants_per_job.html", {

@@ -431,7 +431,7 @@ ifSelectorExist('#manpowerRequestAnalytics', () => manpowerRequestAnalytics());
 
 /** Get Manpower Request Details */
 const getManpowerRequestDetails = () => {
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
     GET_ajax(`${ ROUTE.API.DM }manpower-requests/${ manpowerRequestID }`, {
         success: result => {
             if(result) {
@@ -576,7 +576,7 @@ ifSelectorExist('#editManpowerRequestForm', () => {
      */
 
     /** Get requisition ID from the URL */
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
 
     /** Get Manpower Request Information */
     GET_ajax(`${ ROUTE.API.DM }manpower-requests/${ manpowerRequestID }`, {
