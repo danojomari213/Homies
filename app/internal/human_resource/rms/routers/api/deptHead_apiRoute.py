@@ -400,7 +400,7 @@ def upload_employment_contract(
             orig_filename = f"{file.filename}"
             file_extension = orig_filename.split('.')[-1]
             new_filename = uuid.uuid4().hex
-            file_location = f"static/src/files/internal/human_resource/recruitment/employment_contracts/{new_filename}.{file_extension}"
+            file_location = f"static/src/files/internal/human_resource/rms/employment_contracts/{new_filename}.{file_extension}"
             with open(file_location, "wb") as fileObj:
                 shutil.copyfileobj(file.file, fileObj)
             return {
