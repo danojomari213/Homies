@@ -368,9 +368,9 @@ initDataTable('#manpowerRequestDT', {
                     case "For signature":
                         additionalOptions = editBtn + cancelBtn;
                         break;
-                    // case "Approved":
-                    //     additionalOptions = markAsCompletedBtn;
-                    //     break;
+                    case "Approved":
+                        additionalOptions = markAsCompletedBtn;
+                        break;
                     case "Rejected for approval":
                     case "Rejected for signing":
                         additionalOptions = deleteBtn;
@@ -466,6 +466,10 @@ const getManpowerRequestDetails = () => {
                         case "Approved":
                             $('#cancelManpowerRequestModal').remove();
                             return `
+                                <div class="btn btn-sm btn-success btn-block" onclick="markAsCompleted('${ manpowerRequestID }')">
+                                    ${ TEMPLATE.ICON_LABEL("check-circle", "Mark as completed") }
+                                </div>
+                                <hr>
                                 <div class="btn btn-sm btn-secondary btn-block" onclick="printManpowerRequest()">
                                     ${ TEMPLATE.ICON_LABEL("print", "Print Manpower Request Form") }
                                 </div>
@@ -940,6 +944,9 @@ validateForm('#markAsCompletedForm', {
 
                     // Hide Modal
                     hideModal('#markAsCompletedModal');
+
+                    // Reload Datatable
+                    reloadDataTable('#manpowerRequestsDT');
 
                     // Set buttons to unload state
                     btnToUnloadState('#confirmMarkAsCompletedBtn', TEMPLATE.LABEL_ICON('Yes, mark it.', 'check-circle'));

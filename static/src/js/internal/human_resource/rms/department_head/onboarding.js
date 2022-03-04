@@ -84,7 +84,7 @@ initDataTable('#onboardingEmployeesDT', {
                     var completeStatus = taskProgress == 100
                         ? `
                             <small>
-                                <i class="fas fa-check-circle text-success mr-1"></i>
+                                <i class="fas fa-check text-success mr-1"></i>
                                 <span>Completed</span>
                             </small>
                         ` 

@@ -216,6 +216,7 @@ class CreateEmploymentType(BaseModel):
 
 
 class CreateEmployee(Employee):
+    user_id: str
     position_id: str
     employment_type_id: str
 

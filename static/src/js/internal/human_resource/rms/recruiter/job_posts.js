@@ -46,7 +46,7 @@ ifSelectorExist('#createJobPostForm', () => {
     });
 
     // Get the requisition ID from the URL
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
 
     /** Get Manpower Request Information */
     GET_ajax(`${ ROUTE.API.R }manpower-requests/${ manpowerRequestID }`, {

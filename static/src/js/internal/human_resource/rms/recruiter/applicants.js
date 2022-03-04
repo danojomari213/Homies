@@ -224,12 +224,14 @@ ifSelectorExist('#jobPostSummary', () => {
             });
             
             // Set Employment Type
-            setContent('#employmentType', manpowerRequest.employment_type);
+            setContent('#employmentType', manpowerRequest.employment_type.name);
 
             // Set Deadline
             setContent('#deadline', () => {
                 const deadline = manpowerRequest.deadline;
-                return isEmptyOrNull(deadline) ? 'No deadline' : `Until ${ formatDateTime(deadline, "Date") }`
+                return isEmptyOrNull(deadline) 
+                    ? `<span class="text-secondary font-italic">No deadline</span>` 
+                    : `Until ${ formatDateTime(deadline, "Date") }`
             });
             
             $('#jobPostSummaryLoader').remove();

@@ -256,7 +256,7 @@ onHideModal('#rejectRequestModal', () => resetForm('#rejectRequestForm'));
 
 /** Sign Request */
 const signRequest = (data) => {
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
 
     const ifError = () => {
         if(data.request_status == "For approval") {

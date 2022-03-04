@@ -430,19 +430,18 @@ ifSelectorExist('#availableJobDetails', () => {
      * page, it will not re-iterate even though user will visit it
      * multiple times, unless tab will close
      */
-    let visitedJobPosts = JSON.parse(sessionStorage.getItem('visited_job_posts'))
+    let visitedJobPosts = JSON.parse(sessionStorage.getItem('visited_job_posts'));
     if(!visitedJobPosts) {
         sessionStorage.setItem('visited_job_posts', JSON.stringify([jobPostID]));
         incrementPageViews();
     } else {
         const isVisited = visitedJobPosts.includes(jobPostID)
         if(!isVisited) {
-            visitedJobPosts.push(jobPostID)
+            visitedJobPosts.push(jobPostID);
             sessionStorage.setItem('visited_job_posts', JSON.stringify(visitedJobPosts));
             incrementPageViews();
         }
     }
-
 });
 
 

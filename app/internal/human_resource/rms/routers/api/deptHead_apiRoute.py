@@ -101,9 +101,6 @@ def manpower_requests_analytics(
                 Position.position_id == Employee.position_id
             ).first()
 
-            print("Test")
-            print(user_department)
-
             if not user_department:
                 return HTTPException(status_code=404, detail={"message": "User department not found"})
             else:
@@ -232,7 +229,9 @@ def sign_manpower_request(
 ):
     try:
         if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
-            manpower_request = db.query(ManpowerRequest).filter(ManpowerRequest.manpower_request_id == manpower_request_id)
+            manpower_request = db.query(ManpowerRequest).filter(
+                ManpowerRequest.manpower_request_id == manpower_request_id
+            )
             if not manpower_request.first():
                 return HTTPException(status_code=404, detail=MANPOWER_REQUEST_NOT_FOUND_RESPONSE)
             else:
