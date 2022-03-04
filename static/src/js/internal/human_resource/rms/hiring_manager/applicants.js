@@ -725,6 +725,27 @@ const getInterviewSchedulesPerJobPost = () => {
 
                         const intervieweesCount = r.interviewees.length;
 
+                        let interviewedCount = 0;
+
+                        const interviewed = () => {
+                            r.interviewees.forEach(i => {
+                                if(i.is_interviewed) interviewedCount++;
+                            });
+
+                            if(interviewedCount == intervieweesCount) {
+                                return TEMPLATE.SUBTEXT(`
+                                    <i class="fas fa-check text-primary mr-1"></i>
+                                    <span>All applicants are interviewed</span>
+                                `)
+                            } else {
+                                return TEMPLATE.SUBTEXT(`
+                                    <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+                                    <span>${ intervieweesCount - interviewedCount } of them ${ intervieweesCount - interviewedCount > 1 ? 'are' : 'is' } not yet interviewed</span>
+                                `)
+                            }
+                            
+                        }
+
                         schedules += `
                             <div class="callout callout-info">
                                 <h5 class="mb-0">${ formatDateTime(r.scheduled_date, 'Full Date') }</h5>
@@ -735,7 +756,8 @@ const getInterviewSchedulesPerJobPost = () => {
     
                                 <div class="row mt-2">
                                     <div class="col">
-                                        <div>${ intervieweesCount } applicant${ intervieweesCount > 1 ? 's' : '' } are scheduled</div>
+                                        <div>${ intervieweesCount } ${ pluralize('applicant', intervieweesCount) } are scheduled</div>
+                                        <div>${ interviewed() }</div>
                                     </div>
                                     <div class="col">
                                         <div class="text-right">

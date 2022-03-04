@@ -327,8 +327,31 @@ initDataTable('#interviewSchedulesDT', {
         {
             data: null,
             render: data => {
-                const interviewees = data.interviewees.length;
-                return `${ interviewees } ${ pluralize('interviewee', interviewees) }`
+                const interviewees = data.interviewees;
+                let interviewedCount = 0;
+                
+                interviewees.forEach(i => {
+                    if(i.is_interviewed) interviewedCount++;
+                });
+
+                const interviewed = () => {
+                    if(interviewedCount == interviewees.length) {
+                        return TEMPLATE.SUBTEXT(`
+                            <i class="fas fa-check text-primary mr-1"></i>
+                            <span>All applicants are interviewed</span>
+                        `)
+                    } else {
+                        return TEMPLATE.SUBTEXT(`
+                            <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+                            <span>${ interviewees.length - interviewedCount } of them ${ interviewees.length - interviewedCount > 1 ? 'are' : 'is' } not yet interviewed</span>
+                        `)
+                    }
+                }
+                
+                return `
+                    <div>${ interviewees.length } ${ pluralize('interviewee', interviewees.length) }</div>
+                    ${ interviewed() }</div>
+                `
             }
         },
 
