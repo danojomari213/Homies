@@ -357,10 +357,34 @@ initDataTable('#jobPostsDT', {
         {
             data: null,
             render: data => {
-                const applicants = data.applicants.length;
-                return applicants == 0 
-                    ? TEMPLATE.UNSET('No applicants yet')
-                    : `${ applicants } applicant${ applicants > 1 ? 's' : '' }`
+                const applicants = data.applicants;
+                if(applicants.length == 0) {
+                    return TEMPLATE.UNSET('No applicants yet')
+                } else {
+                    let applicantsOnProcess = 0;
+                    applicants.forEach(a => {
+                        if(a.status == "For evaluation") applicantsOnProcess++;
+                    });
+
+                    const evaluated = () => {
+                        if(applicantsOnProcess > 0) {
+                            return TEMPLATE.SUBTEXT(`
+                                <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+                                <span>${ applicantsOnProcess } of them are on process</span>
+                            `)
+                        } else {
+                            return TEMPLATE.SUBTEXT(`
+                                <i class="fas fa-check text-primary mr-1"></i>
+                                <span>All of them are evaluated</span>
+                            `)
+                        }
+                    }
+
+                    return `
+                        <div>${ applicants.length } ${ pluralize('applicant', applicants.length) }</div>
+                        ${ evaluated() }
+                    `
+                }
             }
         },
 

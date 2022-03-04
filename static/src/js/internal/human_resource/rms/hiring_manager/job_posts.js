@@ -39,6 +39,7 @@ ifSelectorExist('#jobPostsAnalytics', () => {
 
 /** Initialize Job Posts DataTable */
 initDataTable('#jobPostsDT', {
+    // debugMode: true,
     url: `${ ROUTE.API.H }job-posts`,
     enableButtons: true,
     columns: [
@@ -65,12 +66,37 @@ initDataTable('#jobPostsDT', {
             render: data => {
                 const applicants = data.applicants;
                 let applicantsCounter = 0;
+                let applicantsOnProcess = 0;
                 applicants.forEach(a => {
-                    if(!(a.status == "For evaluation" || a.status == "Rejected from evaluation")) applicantsCounter++;
+                    const status = a.status;
+                    if(!(status == "For evaluation" || status == "Rejected from evaluation")) {
+                        applicantsCounter++;
+                        if(status == "For screening" ||status == "For interview") {
+                            applicantsOnProcess++;
+                        }
+                    }
                 });
+
+                const evaluated = () => {
+                    if(applicantsOnProcess > 0) {
+                        return TEMPLATE.SUBTEXT(`
+                            <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+                            <span>${ applicantsOnProcess } of them are on process</span>
+                        `)
+                    } else {
+                        return TEMPLATE.SUBTEXT(`
+                            <i class="fas fa-check text-primary mr-1"></i>
+                            <span>All of them are evaluated</span>
+                        `)
+                    }
+                }
+
                 return applicantsCounter === 0 
                     ? TEMPLATE.UNSET('No applicants yet')
-                    : applicantsCounter + pluralize(' applicant', applicantsCounter)
+                    : `
+                        <div>${ applicantsCounter + pluralize(' applicant', applicantsCounter) }</div>
+                        ${ evaluated() }
+                    `
             }
         },
 
@@ -188,7 +214,7 @@ ifSelectorExist('#jobPostDetails', () => {
             setContent('#salaryRangeForSummary', () => {
                 if(isEmptyOrNull(minSalary) && isEmptyOrNull(minSalary)) {
                     hideElement('#salaryRangeField');
-                    return TEMPLATE.UNSET('Mo salary has been set')
+                    return TEMPLATE.UNSET('No salary has been set')
                 } else return `
                     Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}
                     Average: ${formatCurrency((minSalary + maxSalary) / 2)}
