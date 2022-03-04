@@ -168,12 +168,17 @@
                     {# Application form #}
                     <form class="mb-5" id="applicationForm">
 
-                        <h3 id="applyNow">Apply Here</h3>
+                        <h3 id="applyNow">Apply Here!</h3>
                         <div class="dropdown-divider"></div>
+                        <div>Submit your application here by filling up this form:</div>
 
                         <input type="hidden" id="jobPostID" name="jobPostID">
                         <input type="hidden" id="submitApplicationMode" name="submitApplicationMode" value="0">
 
+                        <div class="form-group">
+                            <label class="text-danger small">*  Required fields</label>
+                        </div>
+                        
                         {# Applicant's Name Field #}
                         <div class="form-row my-3">
 
@@ -310,6 +315,10 @@
                                     <label class="custom-file-label" for="exampleInputFile">Choose file</label>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div>Please read our <a href="/terms-and-policies" target="_blank">Terms and Policies</a> before you submit your application.</div>
                         </div>
 
                         {# User Actions #}
