@@ -737,12 +737,10 @@ $('#resetFilters').on('click', () => {
         urlParamsObj.jobCategory = null;
         urlParamsObj.employmentType = null;
         urlParamsObj.page = null;
-
         $("#datePosted").val('').trigger('change');
         $("#jobCategory").val('').trigger('change');
         $("#employmentType").val('').trigger('change');
 
-        
         // Show loading status
         setContent('#availableJobList', `
             <div class="col-12">

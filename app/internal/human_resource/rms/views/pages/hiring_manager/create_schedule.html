@@ -80,16 +80,20 @@
                         {# Add Applicant #}
                         <div class="form-group">
                             <label for="selectApplicant">Choose applicants to be interview for this schedule</label>
-                            <div class="input-group" style="width: 100%">
-                                <select 
-                                    name="applicant" 
-                                    id="selectApplicant"
-                                    class="form-control"
-                                >
-                                    <option></option>
-                                </select>
-                                <div class="input-group-append">
-                                    <button class="btn btn-primary" type="button" id="addApplicantBtn" disabled>
+                            <div class="form-row">
+                                <div class="col-10">
+                                    <div class="input-group" style="width: 100%">
+                                        <select 
+                                            name="applicant" 
+                                            id="selectApplicant"
+                                            class="form-control"
+                                        >
+                                            <option></option>
+                                        </select>
+                                    </div>  
+                                </div>
+                                <div class="col-2">
+                                    <button class="btn btn-primary btn-block" type="button" id="addApplicantBtn" disabled>
                                         <span>Add</span>
                                         <i class="fas fa-plus ml-1"></i>
                                     </button>
@@ -185,5 +189,5 @@
 
 
 {% block page_scripts %}
-    <script src="{{url_for('src', path='/js/internal/human_resource/rms/hiring_manager/applicants.js')}}"></script>
+    <script src="{{url_for('src', path='/js/internal/human_resource/rms/hiring_manager/interview_schedule.js')}}"></script>
 {% endblock %}
