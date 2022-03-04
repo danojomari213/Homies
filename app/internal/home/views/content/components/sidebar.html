@@ -35,16 +35,20 @@
 
         {# Sidebar Menu #}
         <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            <ul class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
 
                 {# Module Name #}
                 <li class="nav-header font-weight-bold text-wrap">HOME</li>
 
                 <li class="nav-header">CORE</li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link active">
+                    <a href="/internal/home" class="nav-link active">
                         <i class="nav-icon fas fa-chart-pie"></i>
                         <p>Main Dashboard</p>
+                    </a>
+                    <a href="/" class="nav-link" target="_blank">
+                        <i class="nav-icon fas fa-globe"></i>
+                        <p>Public Portal</p>
                     </a>
                 </li>
 

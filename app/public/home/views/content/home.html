@@ -41,7 +41,7 @@
             <span class="sr-only">Next</span>
         </a>
     </div>
-
+    
     {# Redirect to a page #}
     <div class="content bg-white">
         <div class="p-3 p-md-4">
@@ -159,4 +159,9 @@
         </div>
     </div>
 
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{{url_for('src', path='/js/public/home/home.js')}}"></script>
 {% endblock %}

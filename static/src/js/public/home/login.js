@@ -1,5 +1,7 @@
 "use strict";
 
+(() => { if(localStorage.getItem('access_token')) location.replace('/internal/home') })();
+
 /** Validate Login Form */
 validateForm("#loginForm", {
     rules: {

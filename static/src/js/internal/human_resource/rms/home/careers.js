@@ -24,6 +24,8 @@ history.replaceState(null, null, getURLQueryString(urlParamsObj));
  * ==============================================================================
  */
 
+// Back to careers page
+const backToCareers = () => location.assign('/careers');
 
 // Set Search Form Values according to URL parameters
 const setSearchFormValues = () => {
@@ -369,9 +371,16 @@ ifSelectorExist('#availableJobDetails', () => {
             });
 
             // Set Salary Range
-            result.is_salary_visible
-                ? setContent('#salaryRange', `${ formatCurrency(manpowerRequest.min_monthly_salary) } - ${ formatCurrency(manpowerRequest.max_monthly_salary) }`)
-                : hideElement('#salaryRangeDisplay')
+            if(result.is_salary_visible) {
+                const minSalary = manpowerRequest.min_monthly_salary;
+                const maxSalary = manpowerRequest.max_monthly_salary
+                setContent('#salaryRange', `
+                    <div>Range: ${ formatCurrency(minSalary) } - ${ formatCurrency(maxSalary) }</div>
+                    <div>Average: ${ formatCurrency((minSalary + maxSalary)/2) }</div>
+                `);
+            } else {
+                hideElement('#salaryRangeDisplay')
+            }
 
             // Set Open Until
             setContent('#openUntil', () => {
@@ -386,6 +395,7 @@ ifSelectorExist('#availableJobDetails', () => {
 
             if(isBeforeToday(result.expiration_date)) {
                 $('#applicationForm').remove();
+                $('#applyNowRedirect').remove();
                 showElement('#applicationsNotAvailable');
             } else {
                 $('#applicationsNotAvailable').remove();

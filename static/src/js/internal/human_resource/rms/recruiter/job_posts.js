@@ -76,7 +76,10 @@ ifSelectorExist('#createJobPostForm', () => {
                     hideElement('#salaryRangeField');
                     return TEMPLATE.UNSET('No salary has been set');
                 } else {
-                    return `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+                    return `
+                        <div>Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}</div>
+                        <div>Average: ${formatCurrency((minSalary + maxSalary)/2)}</div>
+                    `;
                 }
             });
 
@@ -555,7 +558,10 @@ const getJobPostDetails = () => GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID
             if(isEmptyOrNull(minSalary) && isEmptyOrNull(minSalary)) {
                 hideElement('#salaryRangeField');
                 return TEMPLATE.UNSET('Unset')
-            } else return `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+            } else return `
+                <div>Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}</div>
+                <div>Average: ${formatCurrency((minSalary + maxSalary)/2)}</div>
+            `;
         });
 
         // Set Deadline
@@ -758,7 +764,7 @@ ifSelectorExist('#editJobPostForm', () => {
     });
 
     /** Get Job Post ID from the URL */
-    const jobPostID = window.location.pathname.split("/")[3];
+    const jobPostID = getPathnamePart(1);
 
     /** Get Job Post Information */
     GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID }`, {
@@ -792,7 +798,10 @@ ifSelectorExist('#editJobPostForm', () => {
                 if(isEmptyOrNull(minSalary) && isEmptyOrNull(minSalary)) {
                     hideElement('#salaryRangeField');
                     return TEMPLATE.UNSET('No status')
-                } else return `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+                } else return `
+                    <div>Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}</div>
+                    <div>Average: ${formatCurrency((minSalary + maxSalary)/2)}</div>
+                `;
             });
 
             // Set Deadline

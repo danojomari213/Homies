@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        {# Available Job Details Loader #}
+        {# Job Details Loader #}
         <div class="container">
             <div class="row">
 
@@ -99,10 +99,12 @@
                                     <div class="skeleton-loader w-25"></div>
                                     <div class="skeleton-loader"></div>
                                 </div>
+                                <div class="dropdown-divider"></div>
                                 <div class="mb-3">
                                     <div class="skeleton-loader w-25"></div>
                                     <div class="skeleton-loader"></div>
                                 </div>
+                                <div class="dropdown-divider"></div>
                                 <div class="skeleton-loader input"></div>
                             </div>
                         </div>
@@ -134,7 +136,7 @@
             </div>
         </div>
 
-        {# Available Job Details #}
+        {# Job Details Container #}
         <div class="container">
             <div class="row">
 
@@ -142,16 +144,16 @@
                 <div class="col-lg-8 order-1 order-lg-0">
 
                     {# Applications not available #}
-                    <div class="py-5 border border-danger rounded text-center mb-4 bg-white" id="applicationsNotAvailable" style="display: none">
-                        <h4>Oops! The application for this job has ended</h4>
+                    <div class="p-5 position-relative border border-danger rounded text-center mb-4 bg-white" id="applicationsNotAvailable" style="display: none">
+                        <div class="ribbon-wrapper ribbon-lg">
+                            <div class="ribbon bg-danger text-md">Ended</div>
+                        </div>
+                        <h4>Hey! The application for this job has ended.</h4>
                         <div class="text-secondary mb-3">You may search for other job opportunities here!</div>
-                        <button href="../careers" class="btn btn-primary" onclick="backToCareers()">
-                            <i class="fas fa-caret-left mr-1"></i>
-                            <span>Go to Careers</span>
+                        <button class="btn btn-primary" onclick="backToCareers()">
+                            <i class="fas fa-search mr-1"></i>
+                            <span class="font-weight-bold">Find available jobs!</span>
                         </button>
-                        <script>
-                            const backToCareers = () => location.assign(`${ BASE_URL_WEB }careers`)
-                        </script>
                     </div>
 
                     {# Job Description #}
@@ -368,7 +370,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr id="applyNowRedirect">
                                     <td>
                                         <a href="#applyNow" class="btn btn-primary btn-block">
                                             <span>Apply Now!</span>

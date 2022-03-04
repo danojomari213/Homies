@@ -34,10 +34,6 @@ router = APIRouter()
 @router.get("/careers")
 def careers(
     req: Request, 
-    searchQuery: Optional[str] = None,
-    datePosted: Optional[str] = None,
-    jobCategory: Optional[str] = None,
-    employmentType: Optional[str] = None,
     page: Optional[int] = 1
 ):
 
@@ -56,15 +52,15 @@ def careers(
 
 # Available Job Details
 @router.get("/careers/{job_post_id}")
-def available_job_details(job_post_id: str, req: Request, db: Session = Depends(get_db)):
+def job_details(job_post_id: str, req: Request, db: Session = Depends(get_db)):
     
     # Check if job_post_id is existing in database
     if not db.query(JobPost).filter(JobPost.job_post_id == job_post_id).first():
         return errTemplate.page_not_found(req)
     
     # If no error, return template response
-    return template.TemplateResponse("pages/home/available_job_details.html", {
+    return template.TemplateResponse("pages/home/job_details.html", {
         "request": req,
-        "page_title": "Available Job Details",
+        "page_title": "Job Details",
         "active_navlink": "Careers"
     })

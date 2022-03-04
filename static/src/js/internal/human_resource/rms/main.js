@@ -655,7 +655,7 @@ const setJobPostDetails = (data) => {
         '#postedAtHumanized': fromNow(data.created_at),
         '#jobPostViews': formatNumber(data.views) + pluralize(' view', data.views),
         '#vacantPosition': manpowerRequest.vacant_position.name,
-        '#employmentTypeForJobPost': manpowerRequest.employment_type,
+        '#employmentTypeForJobPost': manpowerRequest.employment_type.name,
         '#jobCategory': data.job_category.is_removed 
             ? `
                 <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
@@ -689,7 +689,7 @@ const setJobPostDetails = (data) => {
 
     /** Job Post Options */
     setContent('#jobPostOptions', `
-        <a class="btn btn-sm btn-secondary btn-block" target="_blank" href="${ BASE_URL_WEB }careers/${ jobPostID }">
+        <a class="btn btn-sm btn-secondary btn-block" target="_blank" href="/careers/${ jobPostID }">
             ${ TEMPLATE.ICON_LABEL('eye', 'View post in public portal') }
         </a>
         <a class="btn btn-sm btn-secondary btn-block" href="${ ROUTE.WEB.H }job-posts/${ jobPostID }/applicants">

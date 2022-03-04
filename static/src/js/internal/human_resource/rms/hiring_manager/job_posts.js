@@ -181,7 +181,7 @@ ifSelectorExist('#jobPostDetails', () => {
             });
 
             // Set Employment Type
-            setContent('#employmentTypeForSummary', manpowerRequest.employment_type);
+            setContent('#employmentTypeForSummary', manpowerRequest.employment_type.name);
 
             // Set Salary Range
             const minSalary = manpowerRequest.min_monthly_salary, maxSalary = manpowerRequest.max_monthly_salary;
@@ -189,7 +189,10 @@ ifSelectorExist('#jobPostDetails', () => {
                 if(isEmptyOrNull(minSalary) && isEmptyOrNull(minSalary)) {
                     hideElement('#salaryRangeField');
                     return TEMPLATE.UNSET('Mo salary has been set')
-                } else `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+                } else return `
+                    Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}
+                    Average: ${formatCurrency((minSalary + maxSalary) / 2)}
+                `;
             });
 
             // Set Deadline
