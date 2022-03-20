@@ -403,10 +403,11 @@ initDataTable('#onboardingEmployeesDT', {
                     var taskProgress = ((completed/tasks.length) * 100).toFixed(2);
     
                     var bgColor;
-                    if(taskProgress <= 25) bgColor = 'danger';
-                    else if(taskProgress <= 75) bgColor = 'warning';
-                    else if(taskProgress < 100) bgColor = 'info';
-                    else if(taskProgress == 100) bgColor = 'success';
+                    if(taskProgress < 25) bgColor = 'danger';
+                    else if(taskProgress < 50) bgColor = 'warning';
+                    else if(taskProgress < 75) bgColor = 'info';
+                    else if(taskProgress < 100) bgColor = 'success';
+                    else if(taskProgress == 100) bgColor = 'primary';
     
                     var completeStatus = taskProgress == 100
                         ? `
@@ -521,7 +522,7 @@ initDataTable('#onboardingEmployeeTasksDT', {
         { 
             data: null,
             render: data => {
-                const onboardingEmplyeeTaskID = data.onboarding_employee_task_id;
+                const onboardingEmployeeTaskID = data.onboarding_employee_task_id;
 
                 const markAsCompletedLink = () => {
                     return data.status == "Pending" || data.status == "On Going"
@@ -529,7 +530,7 @@ initDataTable('#onboardingEmployeeTasksDT', {
                             <div 
                                 class="dropdown-item d-flex"
                                 role="button"
-                                onclick="changeProgressStatus('${ onboardingEmplyeeTaskID }')"
+                                onclick="changeProgressStatus('${ onboardingEmployeeTaskID }')"
                             >
                                 <div style="width: 2rem"><i class="fas fa-edit mr-1"></i></div>
                                 <span>Change Task Progress</span>
@@ -545,7 +546,7 @@ initDataTable('#onboardingEmployeeTasksDT', {
                             <div 
                                 class="dropdown-item d-flex"
                                 role="button"
-                                onclick="deleteOnboardingEmployeeTask('${ onboardingEmplyeeTaskID }')"
+                                onclick="deleteOnboardingEmployeeTask('${ onboardingEmployeeTaskID }')"
                             >
                                 <div style="width: 2rem"><i class="fas fa-trash-alt mr-1"></i></div>
                                 <span>Delete Task</span>
@@ -558,7 +559,7 @@ initDataTable('#onboardingEmployeeTasksDT', {
                     <div 
                         class="dropdown-item d-flex"
                         role="button"
-                        onclick="viewOnboardingEmployeeTaskDetails('${ onboardingEmplyeeTaskID }')"
+                        onclick="viewOnboardingEmployeeTaskDetails('${ onboardingEmployeeTaskID }')"
                     >
                         <div style="width: 2rem"><i class="fas fa-list mr-1"></i></div>
                         <span>View Details</span>

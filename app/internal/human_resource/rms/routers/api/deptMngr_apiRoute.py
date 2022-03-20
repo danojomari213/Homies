@@ -972,7 +972,7 @@ def delete_onboarding_employee_task(
 
                 # Delete the onboarding task if it doesn't have relationship to other tables
                 onboarding_employee_tasks_count = db.query(OnboardingEmployeeTask).filter(
-                    OnboardingEmployeeTask.onboarding_employee_task_id == onboarding_task_id
+                    OnboardingEmployeeTask.onboarding_task_id == onboarding_task_id
                 ).count()
 
                 if onboarding_employee_tasks_count == 0:
