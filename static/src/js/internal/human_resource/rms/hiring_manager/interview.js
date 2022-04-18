@@ -511,7 +511,6 @@ ifSelectorExist('#interviewScheduleDetails', () => {
 
 /** Scheduled Interviewees DataTable */
 initDataTable('#intervieweesDT', {
-    // debugMode: true,
     url: `${ ROUTE.API.H }interview-schedules/${ interviewScheduleID }/interviewees`,
     columns: [
 
@@ -579,7 +578,22 @@ initDataTable('#intervieweesDT', {
 
                 const viewIntervieweeDetails = () => {
                     if(isInterviewed) {
-                        return `
+                        const applicant_status = data.applicant_info.status;
+                        if(applicant_status === "Hired" || applicant_status === "Contract signed")
+                            return `
+                                <div 
+                                    class="dropdown-item d-flex"
+                                    role="button"
+                                    onclick="viewIntervieweeDetails('${ intervieweeID }')"                  
+                                >
+                                    <div style="width: 2rem"><i class="fas fa-user-tie mr-1"></i></div>
+                                    <div>
+                                        <div>View applicant details</div>
+                                        ${ TEMPLATE.SUBTEXT('View the full details of the applicant') }
+                                    </div>
+                                </div>
+                            `;
+                        else return `
                             <div 
                                 class="dropdown-item d-flex"
                                 role="button"
@@ -591,7 +605,7 @@ initDataTable('#intervieweesDT', {
                                     ${ TEMPLATE.SUBTEXT('Hire or reject this applicant') }
                                 </div>
                             </div>
-                        `;
+                        `
                     } else {
                         return `
                             <div 

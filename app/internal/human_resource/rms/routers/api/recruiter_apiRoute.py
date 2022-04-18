@@ -2,6 +2,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
+from pydantic import BaseModel
 from sqlalchemy import cast, func, and_, text, Date
 from sqlalchemy.orm import Session
 from database import get_db
@@ -13,7 +14,7 @@ from dotenv import dotenv_values
 # Import Models and Schemas
 from models import *
 from app.internal.human_resource.rms.schemas \
-    import user_schemas as user, recruiter_schemas as recruiter, deptMngr_schemas as deptMngr
+    import main_schemas as main, user_schemas as user, recruiter_schemas as recruiter, deptMngr_schemas as deptMngr
 
 # From email sending
 import smtplib
@@ -34,7 +35,11 @@ AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Talent Recruiter"
 
 
-# User Information
+# ====================================================================
+# USER INFORMATION
+# ====================================================================
+
+# Get user information
 @router.get("/info", response_model = user.ShowUserInfo)
 def get_user_info(
     db: Session = Depends(get_db), 
@@ -47,6 +52,49 @@ def get_user_info(
                 raise HTTPException(status_code = 404, detail = {"message": "Employee does not exists"})
             else:
                 return user_info
+    except Exception as e:
+        print(e)
+
+
+# ====================================================================
+# NOTIFICATIONS
+# ====================================================================
+
+# Recruitment Notification Not Found Response
+RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE = {"message": "Recruitment Notification not found"}
+
+# Get all notifications
+@router.get("/notifications", response_model = List[main.ShowRecruitmentNotifications])
+def get_notifications(
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            return db.query(RecruitmentNotification).filter(
+                RecruitmentNotification.employee_id == user_data.employee_id
+            ).order_by(
+                RecruitmentNotification.created_at.desc()
+            ).all()
+    except Exception as e:
+        print(e)
+
+# Unread notification
+@router.put("/notifications/{notification_id}/unread")
+def unread_notification(
+    notification_id: str,
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            notification = db.query(RecruitmentNotification).filter(RecruitmentNotification.notification_id == notification_id)
+            if not notification.first():
+                raise HTTPException(status_code=404, detail=RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE)
+            else:
+                notification.update({ "is_unread": False })
+                db.commit()
+                return {"message": "A recruitment notification has been read"}
     except Exception as e:
         print(e)
 
@@ -423,14 +471,33 @@ def end_recruiting(
 APPLICANT_NOT_FOUND_RESPONSE = {"message": "Applicant not found"}
 
 
+# class ShowApplicantsDT(main.DataTable):
+#     data: List[recruiter.ShowApplicant]
+
 # Get All Applicants
 @router.get("/applicants", response_model = List[recruiter.ShowApplicant])
 def get_all_applicants(
+    # draw = Optional[int],
+    # start = Optional[int],
+    # length = Optional[int],
     db: Session = Depends(get_db),
     user_data: UserData = Depends(get_user)
 ):
     try:
         if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+
+            # draw = int(draw)
+            # start = int(start)
+            # length = int(length)
+
+            # totalRecords = db.query(Applicant).count()
+            
+            # return {
+            #     "draw": draw,
+            #     "total": totalRecords,
+            #     "data": db.query(Applicant).slice(start, start + length).all()
+            # }
+            
             return db.query(Applicant).all()
     except Exception as e:
         print(e)

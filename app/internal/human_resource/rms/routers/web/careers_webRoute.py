@@ -1,11 +1,8 @@
 # Import Packages
 from typing import Optional
 from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-from jwt_token import get_token
 from sqlalchemy.orm import Session
 from database import get_db
-from oauth2 import hasAccess
 from fastapi.templating import Jinja2Templates
 
 # Import Models
@@ -59,7 +56,7 @@ def job_details(job_post_id: str, req: Request, db: Session = Depends(get_db)):
         return errTemplate.page_not_found(req)
     
     # If no error, return template response
-    return template.TemplateResponse("pages/home/job_details.html", {
+    return template.TemplateResponse("pages/home/job_details.min.html", {
         "request": req,
         "page_title": "Job Details",
         "active_navlink": "Careers"

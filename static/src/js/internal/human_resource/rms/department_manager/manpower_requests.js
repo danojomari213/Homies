@@ -237,7 +237,7 @@ initDataTable('#manpowerRequestDT', {
     // debugMode: true,
     enableButtons: true,
     columns: [
-
+        
         // Created At (For Default Sorting)
         { data: 'created_at', visible: false },
 
@@ -880,8 +880,8 @@ validateForm('#deleteManpowerRequestForm', {
     messages: { requisitionID: { required: 'Requisition ID should be here' }},
     submitHandler: () => {
         const formData = generateFormData('#deleteManpowerRequestForm');
-        const requisitionID = formData.get('requisitionID');
-        DELETE_ajax(`${ ROUTE.API.DM }requisitions/${ requisitionID }`, {
+        const manpowerRequestID = formData.get('manpowerRequestID');
+        DELETE_ajax(`${ ROUTE.API.DM }manpower-requests/${ manpowerRequestID }`, {
             success: result => {
                 if(result) {
                     hideModal('#deleteManpowerRequestModal');

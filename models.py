@@ -1,4 +1,5 @@
 # Import Packages
+from re import M
 from database import Base
 from sqlalchemy import text
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -129,7 +130,8 @@ class Applicant(Base):
     )
     resume = Column(
         String(255), 
-        nullable = False,unique = True
+        nullable = False,
+        unique = True
     )
     contact_number = Column(
         String(255), 
@@ -232,6 +234,13 @@ class Applicant(Base):
     interviewee_info = relationship(
         "Interviewee",
         back_populates = "applicant_info",
+        uselist = False
+    )
+
+    # To Resume
+    applicant_resume = relationship(
+        "Resume",
+        back_populates = "resume_owned_by",
         uselist = False
     )
 
@@ -370,6 +379,18 @@ class Employee(Base):
     user_credentials = relationship(
         "InternalUser",
         back_populates = "employee_info"
+    )
+
+    # To Recruitment Notification
+    notifications = relationship(
+        "RecruitmentNotification",
+        back_populates = "notification_for",
+        foreign_keys = "RecruitmentNotification.employee_id"
+    )
+    created_notifications = relationship(
+        "RecruitmentNotification",
+        back_populates = "notification_created_by",
+        foreign_keys = "RecruitmentNotification.author_id"
     )
     
     # To ManpowerRequst
@@ -1507,6 +1528,434 @@ class Position(Base):
     onboarding_employees = relationship(
         "OnboardingEmployee",
         back_populates = "onboarding_employee_position"
+    )
+
+
+# Recruitment Notifications Model
+class RecruitmentNotification(Base):
+    __tablename__ = "recruitment_notifications"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+
+    notification_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    employee_id = Column(
+        String(36),
+        ForeignKey('employees.employee_id'),
+        nullable = False
+    )
+    notification_type = Column(
+        String(255),
+        nullable = False
+    )
+    notification_subtype = Column(
+        String(255),
+        nullable = False
+    )
+    link = Column(
+        String(255),
+        nullable = False
+    )
+    author_id = Column(
+        String(36),
+        ForeignKey('employees.employee_id'),
+        nullable = True
+    )
+    reference_id = Column(
+        String(36),
+        nullable = True
+    )
+    is_unread = Column(
+        Boolean,
+        nullable = False,
+        default = True
+    )
+    is_removed = Column(
+        Boolean,
+        nullable = False,
+        default = False
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+    
+    # ==================================================================================
+    # Relationship (To other tables/models)
+    # ==================================================================================
+
+    # To Employee
+    notification_for = relationship(
+        "Employee",
+        back_populates = "notifications",
+        foreign_keys = "RecruitmentNotification.employee_id"
+    )
+    notification_created_by = relationship(
+        "Employee",
+        back_populates = "created_notifications",
+        foreign_keys = "RecruitmentNotification.author_id"
+    )
+
+
+# Resume Model
+class Resume(Base):
+    __tablename__ = "resumes"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+
+    resume_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    applicant_id = Column(
+        String(36),
+        ForeignKey('applicants.applicant_id'),
+        nullable = False
+    )
+    summary = Column(
+        Text,
+        nullable = False
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+
+    # ==================================================================================
+    # Relationships (From other tables)
+    # ==================================================================================
+
+    # From Applicant
+    resume_owned_by = relationship(
+        "Applicant",
+        back_populates = "applicant_resume"
+    )
+
+    # ==================================================================================
+    # Relationships (To other tables)
+    # ==================================================================================
+
+    # To ResumeCertification
+    resume_awards = relationship(
+        "ResumeAward",
+        back_populates = "award_for_resume"
+    )
+
+    # To ResumeCertification
+    resume_certifications = relationship(
+        "ResumeCertification",
+        back_populates = "certification_for_resume"
+    )
+
+    # To ResumeEducation
+    resume_education = relationship(
+        "ResumeEducation",
+        back_populates = "education_for_resume"
+    )
+
+    # To ResumeExperience
+    resume_experiences = relationship(
+        "ResumeExperience",
+        back_populates = "experience_for_resume"
+    )
+
+    # To ResumeSkill
+    resume_skills = relationship(
+        "ResumeSkill",
+        back_populates = "skill_for_resume"
+    )
+
+
+# Resume Award Model
+class ResumeAward(Base):
+    __tablename__ = "resume_awards"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+    
+    award_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    resume_id = Column(
+        String(36),
+        ForeignKey("resumes.resume_id"),
+        nullable = False
+    )
+    name = Column(
+        String(255),
+        nullable = False
+    )
+    issuer = Column(
+        String(255),
+        nullable = True
+    )
+    issue_month = Column(
+        Integer,
+        nullable = True
+    )
+    issue_year = Column(
+        Integer,
+        nullable = True
+    )
+    description = Column(
+        Text,
+        nullable = False
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+
+    # ==================================================================================
+    # Relationships (To other tables)
+    # ==================================================================================
+
+    # To Resume
+    award_for_resume = relationship(
+        "Resume",
+        back_populates = "resume_awards"
+    )
+
+
+# Resume Certification Model
+class ResumeCertification(Base):
+    __tablename__ = "resume_certifications"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+
+    certification_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    resume_id = Column(
+        String(36),
+        ForeignKey("resumes.resume_id"),
+        nullable = False
+    )
+    name = Column(
+        String(255),
+        nullable = False
+    )
+    organization = Column(
+        String(255),
+        nullable = True
+    )
+    credential_id = Column(
+        String(255),
+        nullable = True
+    )
+    issue_month = Column(
+        Integer,
+        nullable = True
+    )
+    issue_year = Column(
+        Integer,
+        nullable = True 
+    )
+    experience_month = Column(
+        Integer,
+        nullable = True
+    )
+    experience_year = Column(
+        Integer,
+        nullable = True 
+    )
+    description = Column(
+        Text,
+        nullable = True
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+
+    # ==================================================================================
+    # Relationships (To other tables)
+    # ==================================================================================
+
+    # To Resume
+    certification_for_resume = relationship(
+        "Resume",
+        back_populates = "resume_certifications"
+    )
+
+
+# Resume Education Model
+class ResumeEducation(Base):
+    __tablename__ = "resume_education"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+
+    education_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    resume_id = Column(
+        String(36),
+        ForeignKey("resumes.resume_id"),
+        nullable = False
+    )
+    school = Column(
+        String(255),
+        nullable = False
+    )
+    degree = Column(
+        String(255),
+        nullable = True
+    )
+    study_field = Column(
+        String(255),
+        nullable = True
+    )
+    start_year = Column(
+        Integer,
+        nullable = True
+    )
+    end_year = Column(
+        Integer,
+        nullable = True
+    )
+    description = Column(
+        Text,
+        nullable = True
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+
+    # ==================================================================================
+    # Relationships (To other tables)
+    # ==================================================================================
+
+    # To Resume
+    education_for_resume = relationship(
+        "Resume",
+        back_populates = "resume_education"
+    )
+
+
+# Resume Experiences Model
+class ResumeExperience(Base):
+    __tablename__ = "resume_experiences"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+
+    experience_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    resume_id = Column(
+        String(36),
+        ForeignKey("resumes.resume_id"),
+        nullable = False
+    )
+    job_title = Column(
+        String(255),
+        nullable = False
+    )
+    company = Column(
+        String(255),
+        nullable = False
+    )
+    start_month = Column(
+        Integer,
+        nullable = True
+    )
+    start_year = Column(
+        Integer,
+        nullable = False
+    )
+    end_month = Column(
+        Integer,
+        nullable = True
+    )
+    end_year = Column(
+        Integer,
+        nullable = True
+    )
+    description = Column(
+        Text,
+        nullable = True
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+
+    # ==================================================================================
+    # Relationships (To other tables)
+    # ==================================================================================
+
+    # To Resume
+    experience_for_resume = relationship(
+        "Resume",
+        back_populates = "resume_experiences"
+    )
+
+
+# Resume Skills Model
+class ResumeSkill(Base):
+    __tablename__ = "resume_skills"
+
+    # ==================================================================================
+    # Columns
+    # ==================================================================================
+
+    skill_id = Column(
+        String(36),
+        primary_key = True,
+        default = text('UUID()')
+    )
+    resume_id = Column(
+        String(36),
+        ForeignKey("resumes.resume_id"),
+        nullable = False
+    )
+    name = Column(
+        String(255),
+        nullable = False
+    )
+    created_at = Column(
+        DateTime,
+        nullable = False,
+        default = text('NOW()')
+    )
+
+    # ==================================================================================
+    # Relationships (To other tables)
+    # ==================================================================================
+
+    # To Resume
+    skill_for_resume = relationship(
+        "Resume",
+        back_populates = "resume_skills"
     )
 
 

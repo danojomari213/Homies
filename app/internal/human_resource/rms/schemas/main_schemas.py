@@ -4,6 +4,11 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
+class DataTable(BaseModel):
+    draw: Optional[str]
+    total: Optional[int]
+
+
 class Department(BaseModel):
     department_id: str
     name: str
@@ -144,5 +149,20 @@ class UserCredentials(BaseModel):
     employee_info: ShowEmployee
     user_roles: List[ShowUserRole]
 
+    class Config():
+        orm_mode = True
+
+
+class ShowRecruitmentNotifications(BaseModel):
+    notification_id: str
+    notification_type: str
+    notification_subtype: str
+    link: str
+    notification_created_by: Optional[ShowEmployee]
+    is_unread: bool
+    is_removed: bool
+    created_at: datetime
+    reference: Optional[object]
+    
     class Config():
         orm_mode = True

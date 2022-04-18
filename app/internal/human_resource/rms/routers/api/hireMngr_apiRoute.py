@@ -13,7 +13,7 @@ from sqlalchemy import or_
 # Import Models and Schemas
 from models import *
 from app.internal.human_resource.rms.schemas \
-    import user_schemas as user, hireMngr_schemas as hireMngr, deptMngr_schemas as deptMngr
+    import main_schemas as main, user_schemas as user, hireMngr_schemas as hireMngr, deptMngr_schemas as deptMngr
 
 
 # From email sending
@@ -35,7 +35,11 @@ AUTHORIZED_ROLE = "Hiring Manager"
 env = dotenv_values(".env")
 
 
-# User Information
+# ====================================================================
+# USER INFORMATION
+# ====================================================================
+
+# Get User Information
 @router.get("/info", response_model = user.ShowUserInfo)
 def get_user_info(
     db: Session = Depends(get_db), 
@@ -48,6 +52,49 @@ def get_user_info(
                 raise HTTPException(status_code = 404, detail = {"message": "Employee does not exists"})
             else:
                 return user_info
+    except Exception as e:
+        print(e)
+
+
+# ====================================================================
+# NOTIFICATIONS
+# ====================================================================
+
+# Recruitment Notification Not Found Response
+RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE = {"message": "Recruitment Notification not found"}
+
+# Get all notifications
+@router.get("/notifications", response_model = List[main.ShowRecruitmentNotifications])
+def get_notifications(
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            return db.query(RecruitmentNotification).filter(
+                RecruitmentNotification.employee_id == user_data.employee_id
+            ).order_by(
+                RecruitmentNotification.created_at.desc()
+            ).all()
+    except Exception as e:
+        print(e)
+
+# Unread notification
+@router.put("/notifications/{notification_id}/unread")
+def unread_notification(
+    notification_id: str,
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            notification = db.query(RecruitmentNotification).filter(RecruitmentNotification.notification_id == notification_id)
+            if not notification.first():
+                raise HTTPException(status_code=404, detail=RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE)
+            else:
+                notification.update({ "is_unread": False })
+                db.commit()
+                return {"message": "A recruitment notification has been read"}
     except Exception as e:
         print(e)
 
@@ -198,18 +245,61 @@ def manpower_request_approval(
                 raise HTTPException(status_code=404, detail=MANPOWER_REQUEST_NOT_FOUND_RESPONSE)
             else:
                 if req.request_status == "Approved":
+
+                    # Update manpower request status
                     manpower_request.update({
                         "request_status": req.request_status,
                         "reviewed_by": user_data.employee_id,
                         "reviewed_at": text('NOW()')
                     })
+
+                    # Create notification for dept. manager
+                    new_notification_1 = RecruitmentNotification(
+                        employee_id = manpower_request.first().requested_by,
+                        notification_type = "Manpower Request",
+                        notification_subtype = "Approved Request",
+                        link = "manpower-requests/" + manpower_request.first().manpower_request_id,
+                        author_id = user_data.employee_id,
+                        reference_id = manpower_request.first().manpower_request_id
+                    )
+
+                    # Create notification for recruiters
+                    recruiters = db.query(Employee).join(Position).filter(
+                        Position.position_id == Employee.position_id,
+                        Position.name == "Talent Recruiter"
+                    )
+                    for recruiter in recruiters:
+                        new_notification_2 = RecruitmentNotification(
+                            employee_id = recruiter.employee_id,
+                            notification_type = "Manpower Request",
+                            notification_subtype = "Approved Request",
+                            link = "manpower-requests/" + manpower_request.first().manpower_request_id,
+                            author_id = user_data.employee_id,
+                            reference_id = manpower_request.first().manpower_request_id
+                        )
+                        db.add(new_notification_2)
                 elif req.request_status == "Rejected for approval":
+
+                    # Update manpower request status
                     manpower_request.update({
                         "request_status": req.request_status,
                         "remarks": req.remarks,
                         "rejected_by": user_data.employee_id,
                         "rejected_at": text('NOW()')
                     })
+
+                    # Create notification for dept. manager
+                    new_notification_1 = RecruitmentNotification(
+                        employee_id = manpower_request.requested_by,
+                        notification_type = "Manpower Request",
+                        notification_subtype = "Rejected For Approval",
+                        link = "manpower-requests/" + manpower_request.first().manpower_request_id,
+                        author_id = user_data.employee_id,
+                        reference_id = manpower_request.first().manpower_request_id
+                    )
+
+                # Commit changes
+                db.add(new_notification_1)
                 db.commit()
                 return {"message": "A man power request has been updated"}
     except Exception as e:

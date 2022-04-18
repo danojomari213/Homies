@@ -9,6 +9,108 @@
 
 /** 
  * ===================================================================================
+ * NOTIFICATIONS
+ * ===================================================================================
+ */
+
+/** Get user notifications */
+const getUserNotifications = (params = {
+    debugMode: false,
+    apiRoute: '',
+    webRoute: '',
+    notifTypes: {}
+}) => GET_ajax(`${ params.apiRoute }notifications`, {
+    success: result => {
+        if(result) {
+            if(params.debugMode) console.log(result);
+
+            let notifications = '', unread = 0;
+
+            const notifTypes = params.notifTypes;
+
+            if(result.length > 0) {
+                result.forEach(notif => {
+                    const notifType = notifTypes[notif.notification_type];
+
+                    const isUnread = () => {
+                        if(notif.is_unread) {
+                            unread++;
+                            return `<div class="align-self-center">
+                                <span class="text-danger">&#11044;</span>
+                            </div>`
+                        } else return ''
+                    }
+
+                    const ifUnread = () => {
+                        return notif.is_unread
+                            ? ` onclick="unreadNotification('${notif.notification_id}')"`
+                            : ''
+                    }
+
+                    const notificationDate = () => {
+                        return moment(notif.created_at).isBefore(moment().subtract(1, 'week'))
+                            ? formatDateTime(notif.created_at, "Full Date")
+                            : fromNow(notif.created_at)
+                    }
+
+                    notifications += `
+                        <a href="${ params.webRoute }${ notif.link }" class="dropdown-item d-flex"${ ifUnread() }>
+                            <div class="nav-icon">
+                                <div class="d-flex align-items-center justify-content-center bg-secondary rounded-circle mr-2" style="height: 2.5rem; width: 2.5rem">
+                                    <i class="fas fa-${ notifType.icon }" style="font-size: 17.5px"></i> 
+                                </div>
+                            </div>
+                            <div class="flex-fill">
+                                <div class="text-wrap${ !notif.is_unread ? ' notif-read' : '' }" style="line-height: 1.25">
+                                    <span>${ notifType.subtypes[notif.notification_subtype].getContent(notif) }</span>
+                                </div>
+                                <div class="small">
+                                    <i class="small fas fa-clock"></i>
+                                    <span>${ notificationDate() }</span>
+                                </div>
+                            </div>
+                            ${ isUnread() }
+                        </a>
+                    `
+                });
+            } else notifications = `
+                <div class="text-center text-muted p-5">
+                    Hey! You don't have notifications yet.
+                </div>
+            `
+
+            const notifCounter = () => {
+                if (unread > 99) return '99+'
+                else if (unread === 0) return ''
+                else return unread
+            }
+
+            const totalNotifs = () => {
+                const totalNotifs = result.length
+                return totalNotifs > 0
+                    ? `You have ${ totalNotifs } ${ pluralize('notification', totalNotifs) } in total`
+                    : ''
+            }
+
+            setContent({
+                '#notifications': notifications,
+                '#totalNotifications': totalNotifs(), 
+                '#notifCounter': notifCounter,
+                '#notifCounterForDropdown': notifCounter
+            });
+        }
+    },
+    error: () => setContent('#notifications', `
+        <div class="text-center text-muted p-5">
+            Sorry, but we detect an error in getting your notifications. Please refresh the page.
+        </div>
+    `)
+});
+
+
+
+/** 
+ * ===================================================================================
  * TIMELINES
  * ===================================================================================
  */

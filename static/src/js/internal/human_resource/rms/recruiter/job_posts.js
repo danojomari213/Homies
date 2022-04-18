@@ -29,10 +29,10 @@ ifSelectorExist('#createJobPostForm', () => {
                     ? result.forEach(c => jobCategory.append(`<option value="${ c.job_category_id }">${ c.name }</option>`))
                     : jobCategory.append(`<option disabled>No data</option>`)
 
-                /** Employment Type For Add Select2 */
+                /** Job Category For Add Select2 */
                 $('#jobCategory').select2({
                     placeholder: "Please select a category",
-                    minimumResultsForSearch: -1,
+                    // minimumResultsForSearch: -1,
                 });
             }
         }
@@ -243,6 +243,10 @@ ifSelectorExist('#createJobPostForm', () => {
             enableElement('#postBtn');
         }
     });
+
+    /** Remove Loader and Display the form */
+    $('#createJobPostFormLoader').remove();
+    showElement('#createJobPostFormContainer');
 });
 
 /** Set Expriration Date On Change */
@@ -774,7 +778,7 @@ ifSelectorExist('#editJobPostForm', () => {
                 /** Employment Type For Add Select2 */
                 $('#jobCategory').select2({
                     placeholder: "Please select a category",
-                    minimumResultsForSearch: -1,
+                    // minimumResultsForSearch: -1,
                 });
             }
         }

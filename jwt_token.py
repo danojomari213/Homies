@@ -41,12 +41,19 @@ def verify_token(token: str):
         headers = {"WWW-Authenticate": "Bearer"}
     )
     try:
+        # Get the payload
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Get the data from the payload
         user_id: str = payload.get("user_id")
         employee_id: str = payload.get("employee_id")
         roles: str = payload.get("roles")
+        
+        # Verify the payload data
         if not user_id or not roles:
             raise credentials_exception
+
+        # Return the token data
         return TokenData(
             user_id = user_id,
             employee_id = employee_id,

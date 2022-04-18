@@ -13,7 +13,72 @@
 
     {# Content #}
     <section class="content px-3">
-        <div class="form-row">
+
+        {# Edit Job Post Form Loader #}
+        <div class="form-row" id="createJobPostFormLoader">
+
+            {# Form #}
+            <div class="col-lg-8">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <div class="skeleton-loader w-50 m-0"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="skeleton-loader w-50"></div>
+                                    <div class="skeleton-loader" style="height: 50rem"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="skeleton-loader w-50"></div>
+                                    <div class="skeleton-loader input"></div>
+                                    <div class="skeleton-loader input"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer"></div>
+                </div>
+            </div>
+
+            {# Details #}
+            <div class="col-lg-4">
+
+                {# Job Post Summary #}
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <div class="skeleton-loader w-50 m-0"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="skeleton-loader w-50"></div>
+                            <div class="skeleton-loader"></div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="skeleton-loader w-50"></div>
+                            <div class="skeleton-loader"></div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="skeleton-loader w-50"></div>
+                            <div class="skeleton-loader"></div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="skeleton-loader w-50"></div>
+                            <div class="skeleton-loader"></div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="skeleton-loader w-50"></div>
+                            <div class="skeleton-loader"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row" id="createJobPostFormContainer" style="display: none">
 
             {# Create Job Post Form #}
             <div class="col-md-8">

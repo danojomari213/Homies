@@ -1,6 +1,47 @@
-{# Search Component #}
 <div class="container mb-3">
-    <form class="card" id="searchJobForm">
+    
+    {# Search Component Loader #}
+    <div class="card" id="searchJobForm_Loader">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        <div class="skeleton-loader lg mb-0 d-block"></div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <div class="skeleton-loader lg mb-0 d-block"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-3">
+                    <div class="form-group mb-2 mb-md-1">
+                        <div class="skeleton-loader mb-0 d-block" style="height: 31px"></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group mb-2 mb-md-1">
+                        <div class="skeleton-loader mb-0 d-block" style="height: 31px"></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group mb-2 mb-md-1">
+                        <div class="skeleton-loader mb-0 d-block" style="height: 31px"></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group mb-2 mb-md-1">
+                        <div class="skeleton-loader mb-0" style="height: 31px; width: 108px"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Search Component #}
+    <form class="card" id="searchJobForm" style="display: none">
         <div class="card-body">
             <div class="form-row">
                 <div class="col-md-10">

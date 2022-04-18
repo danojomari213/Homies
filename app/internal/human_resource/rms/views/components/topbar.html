@@ -110,20 +110,32 @@
     <li class="nav-item dropdown">
         <a href="" class="nav-link" data-toggle="dropdown">
             <i class="fas fa-bell"></i>
-            <span class="badge badge-warning navbar-badge font-weight-bold">15</span>
+            <span class="badge badge-warning navbar-badge font-weight-bold" id="notifCounter"></span>
         </a>
         
         <div class="dropdown-menu dropdown-menu-xl dropdown-menu-right p-1" style="max-height: 25em; overflow-y: auto">
-            <div class="d-flex align-items-center">
-                <h4 class="font-weight-bold text-left p-2 m-0">
-                    <span>Notifications</span>
-                </h4>
-                <div class="badge badge-warning badge-sm">15</div>
+            <div class="p-2">
+                <div class="d-flex align-items-center">
+                    <h4 class="font-weight-bold text-left d-inline-block m-0 mr-2">
+                        <span>Notifications</span>
+                    </h4>
+                    <div class="badge badge-warning badge-sm" id="notifCounterForDropdown"></div>
+                </div>
+                <div class="small text-muted" id="totalNotifications"></div>
             </div>
             
             <div class="dropdown-divider my-1"></div>
 
-            {% for i in range(10) %}
+            {# Notification Loader #}
+            <div id="notifications">
+                <div class="text-center py-5 wait">
+                    <div class="spinner-border text-primary my-3" role="status">
+                        <span class="sr-only">Loading ...</span>
+                    </div>
+                </div>
+            </div>
+
+            {# for i in range(10) %}
                 <a href="#" class="dropdown-item d-flex">
                     <div class="nav-icon">
                         <div class="d-flex align-items-center justify-content-center bg-secondary rounded-circle mr-2" style="height: 2.5rem; width: 2.5rem">
@@ -140,23 +152,7 @@
                         <span class="text-danger">&#11044;</span>
                     </div>
                 </a>
-                <a href="#" class="dropdown-item d-flex">
-                    <div class="nav-icon">
-                        <div class="d-flex align-items-center justify-content-center bg-warning rounded-circle mr-2" style="height: 2.5rem; width: 2.5rem">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 17.5px"></i> 
-                        </div>
-                    </div>
-                    <div>
-                        <div class="text-wrap" style="line-height: 1.25">
-                            <span>4 lorem impsum dolor sit amet consectetur</span>
-                        </div>
-                        <div class="small">3 mins</div>
-                    </div>
-                    <div class="align-self-center">
-                        <span class="text-danger">&#11044;</span>
-                    </div>
-                </a>
-            {% endfor %}
+            {% endfor #}
 
             <div class="dropdown-divider my-1"></div>
             
@@ -183,7 +179,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-wrap" style="line-height: 1.25">Profile</div>
+                    <div class="text-wrap font-weight-bold" style="line-height: 1.25">Profile</div>
                     <div class="small">View and manage your profile</div>
                 </div>
             </a>
@@ -194,7 +190,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-wrap" style="line-height: 1.25">Settings</div>
+                    <div class="text-wrap font-weight-bold" style="line-height: 1.25">Settings</div>
                     <div class="small">Configure and edit your settings</div>
                 </div>
             </a>
@@ -214,7 +210,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-wrap" style="line-height: 1.25">Log out</div>
+                    <div class="text-wrap font-weight-bold" style="line-height: 1.25">Log out</div>
                     <div class="small">End your session</div>
                 </div>
             </a>

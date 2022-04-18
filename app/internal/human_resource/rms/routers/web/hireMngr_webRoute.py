@@ -323,7 +323,7 @@ def render(
     return template.TemplateResponse(TEMPLATES_PATH + "create_schedule.html", {
         "request": req,
         "page_title": "Create Interview Schedule",
-        "sub_title": "Create interview schedule here for applicants f",
+        "sub_title": "Create interview schedule here for applicants",
         "active_navlink": "Interview Schedules",
         "job_post_id": f"{job_post_id}"
     })
@@ -470,7 +470,7 @@ def render(
     return template.TemplateResponse(TEMPLATES_PATH + "interview_scoresheet.html", {
         "request": req,
         "page_title": "Interview Scoresheet",
-        "sub_title": "Lorem ipsum dolor sit amet",
+        "sub_title": "Set the score of the interviewee here",
         "active_navlink": "Applicants"
     })
 
