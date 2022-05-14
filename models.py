@@ -1577,3 +1577,319 @@ class SubDepartment(Base):
         "OnboardingTask",
         back_populates = "for_sub_department"
     )
+
+# ==================================================================================
+# Patient Registration
+# ==================================================================================
+class PatientRegistration(Base):
+    __tablename__ = 'patient_registration'
+
+    patient_id = Column(String(36), primary_key=True, default=text('UUID()'))
+    first_name = Column(String(255), nullable=False)
+    middle_name = Column(String(255), nullable=False)
+    last_name = Column(String(255), nullable=False)
+    sex = Column(String(255), nullable=False)
+    birthday = Column(Date, nullable=False)
+    weight = Column(String(255), nullable=False)
+    height = Column(String(255), nullable=False)
+    blood_type = Column(String(255), nullable=False)
+    guardian = Column(String(255), nullable=False)
+    address = Column(String(255), nullable=False)
+    contact_number = Column(String(255), nullable=False)
+    hospital_employee = Column(String(255), nullable=False)
+    medical_history_number = Column(String(36), ForeignKey('medical_history.medical_history_number'), nullable=True)
+    dp_id = Column(String(36), ForeignKey('discount_privillages.dp_id'), nullable=True)
+    status = Column(String(255),nullable=True, default="Active")
+    patient_type = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+    medical_history = relationship('MedicalHistory')
+    discount_privillages = relationship('Discount')
+
+# ==================================================================================
+# Inpatient Table
+# ==================================================================================
+
+class Inpatient(Base):
+    __tablename__ = 'inpatients'
+
+    admission_id = Column(String(255), primary_key=True, default=text('UUID()'))
+    inpatient_no = Column(String(255), nullable=False)
+    patient_id  = Column(String(255), ForeignKey('patient_registration.patient_id'), nullable=True)
+    room_number = Column(String(36), ForeignKey('rooms.room_id'), nullable=False)
+    # room_type = Column(String(255), nullable=True)
+    date_admitted = Column(DateTime, default=text('NOW()'))
+    reason_of_admittance = Column(String(255), nullable=True)
+    department = Column(String(255), nullable=True)
+    diagnosis = Column(String(255), nullable=True)
+    tests = Column(String(255), nullable=True)
+    treatments = Column(String(255), nullable=True)
+    surgery = Column(String(255), nullable=True)
+    # medication = Column(String(255), nullable=True)
+    # dosage = Column(String(255), nullable=True)
+    # frequency = Column(String(255), nullable=True)
+    # ending_date = Column(Date, nullable=True)
+    status = Column(String(255),nullable=True, default="Active")
+    is_accepting_visits = Column(String(255), nullable=True)
+    patient_status = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+    room = relationship('Room', foreign_keys=[room_number])
+    patientFK = relationship('PatientRegistration', foreign_keys=[patient_id])
+
+    #favor na idagdag
+    my_prescriptions = relationship("Prescription", primaryjoin="and_(Inpatient.admission_id==Prescription.admission_id)",back_populates="inpatient_FK")
+
+# ==================================================================================
+# Outpatient Table
+# ==================================================================================
+class Outpatient(Base):
+    __tablename__ = 'outpatients'
+
+    outpatient_id = Column(String(255), primary_key=True, default=text('UUID()'))
+    outpatient_no = Column(String(255), nullable=False)
+    patient_id  = Column(String(255), ForeignKey('patient_registration.patient_id'), nullable=True)
+    walk_in_date = Column(DateTime, default=text('NOW()'))
+    purpose = Column(String(255), nullable=False)
+    test = Column(String(255), nullable=True)
+    treatment_summary = Column(String(255), nullable=True)
+    # medication = Column(String(255), nullable=True)
+    # dosage = Column(String(255), nullable=True)
+    # frequency = Column(String(255), nullable=True)
+    # ending_date = Column(Date, nullable=True)
+    diagnosis = Column(String(255), nullable=True)
+    status = Column(String(255),nullable=True, default="Active")
+    patient_status = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+    patientFK = relationship('PatientRegistration')
+
+# ==================================================================================
+# Discharge Table
+# ==================================================================================
+class DischargeManagement(Base):
+    __tablename__ = 'discharge_management'
+
+    discharge_id = Column(String(255), primary_key=True, default=text('UUID()'))
+    discharge_no = Column(String(255), nullable=False)
+    patient_id  = Column(String(255), ForeignKey('patient_registration.patient_id'), nullable=True)
+    admission_id = Column(String(255), ForeignKey('inpatients.admission_id'), nullable=True)
+    reason_of_admittance = Column(String(255), nullable=False)
+    diagnosis_at_admittance = Column(String(255), nullable=False)
+    date_admitted = Column(DateTime, default=text('NOW()'))
+    treatment_summary = Column(String(255), nullable=False)
+    discharge_date = Column(Date, nullable=True)
+    physician_approved = Column(String(255), nullable=False)
+    discharge_diagnosis = Column(String(255), nullable=False)
+    further_treatment_plan = Column(String(255), nullable=False)
+    next_check_up_date = Column(Date, nullable=True)
+    client_consent_approval = Column(String(255), nullable=False)
+    # medication = Column(String(255), nullable=True)
+    # dosage = Column(String(255), nullable=True)
+    # frequency = Column(String(255), nullable=True)
+    # ending_date = Column(Date, nullable=True)
+    #check if the patient is paid or not
+    status = Column(String(255),nullable=False, default="Unpaid")
+    active_status = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+    discharge_inpatientFk = relationship('Inpatient', foreign_keys=[admission_id])
+    patientFK = relationship('PatientRegistration', foreign_keys=[patient_id])
+
+# ==================================================================================
+# Discount Table
+# ==================================================================================
+
+class Discount(Base):
+    __tablename__ = 'discount_privillages'
+
+    dp_id = Column(String(36), primary_key=True, default=text('UUID()'))
+    ph_id = Column(String(255), nullable=True)
+    end_of_validity = Column(String(255), nullable=True)
+    sc_id = Column(String(255), nullable=True)
+    municipality = Column(String(255), nullable=True)
+    pwd_id = Column(String(255), nullable=True)
+    type_of_disability = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+# ==================================================================================
+# Medical Supplies Prescription Table
+# ==================================================================================
+
+class MedicalSupplies_PR(Base):
+    __tablename__= 'medicalsupplies_pr'
+
+    medicsupp_prid= Column(String(36), primary_key=True,  default=text('UUID()'))
+    ms_no = Column(String(36), nullable=False,unique=True, index=True)
+    # med_id = Column(String(36), ForeignKey("medicine.med_id"),nullable=True)
+    med_sup_id = Column(String(36),nullable=True)
+    quantity = Column(Integer,nullable=False)
+    cancellation_return = Column(Float, nullable=False, default="0")
+    prescription_id = Column(String(36), ForeignKey("prescriptions.prescription_id"),nullable=True)
+    created_at = Column(DateTime,nullable=False, default=text('NOW()'))
+    updated_at = Column(DateTime,nullable=True, default=text('NOW()'))
+
+    prescription_info = relationship("Prescription", foreign_keys=[prescription_id])
+    # med_id_FK = relationship('Medicine', foreign_keys=[med_id])
+
+# ==================================================================================
+# Medical History Table
+# ==================================================================================
+
+class MedicalHistory(Base):
+    __tablename__ = 'medical_history'
+
+    medical_history_number = Column(String(36), primary_key=True, default=text('UUID()'))
+    # patient_id = Column(String(255), ForeignKey('patient_registration.patient_id'), nullable=True)
+    # prev_hospital = Column(String(255), nullable=True)
+    # prev_doctor = Column(String(255), nullable=True)
+    prev_diagnosis = Column(String(255), nullable=True)
+    prev_treatments = Column(String(255), nullable=True)
+    prev_surgeries = Column(String(255), nullable=True)
+    prev_medications = Column(String(255), nullable=True)
+    allergies = Column(String(255), nullable=True)
+    health_conditions = Column(String(255), nullable=True)
+    special_privillages = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+    # medical_historyFk = relationship('PatientRegistration', back_populates='medical_history')
+
+# ==================================================================================
+# Medicine Prescription Table
+# ==================================================================================
+
+class Medicine_PR(Base):
+    __tablename__= 'medicine_pr'
+
+    medpr_id= Column(String(36), primary_key=True, default=text('UUID()'))
+    medicine_no = Column(String(36), nullable=False,unique=True, index=True)
+    med_id = Column(String(36), ForeignKey("medicine.med_id"),nullable=True)
+    quantity = Column(Integer,nullable=False)
+    intake = Column(String(255),nullable=False)
+    frequency = Column(String(255),nullable=False)
+    dosage = Column(String(255),nullable=False)
+    doctor_prescribed = Column(String(255),nullable=False)
+    cancellation_return = Column(Float, nullable=False, default="0")
+    prescription_id = Column(String(36), ForeignKey("prescriptions.prescription_id"),nullable=True)
+    med_pres_status = Column(String(255),nullable=False, default="Unpaid")
+    created_at = Column(DateTime,nullable=False, default=text('NOW()'))
+    updated_at = Column(DateTime,nullable=True, default=text('NOW()'))
+
+    med_id_FK = relationship('Medicine', foreign_keys=[med_id])
+    prescription_FK = relationship('Prescription', foreign_keys=[prescription_id])
+
+# ==================================================================================
+# Medicine Table
+# ==================================================================================
+
+class Medicine(Base):
+    __tablename__= 'medicine'
+
+    med_id= Column(String(36), primary_key=True, default=text('UUID()'))
+    medicine_number = Column(Integer, nullable=False,unique=True, index=True)
+    medicine_name = Column(String(255), nullable=False)
+    created_at = Column(DateTime,nullable=False, default=text('NOW()'))
+    updated_at = Column(DateTime,nullable=True, default=text('NOW()'))
+
+# ==================================================================================
+# Patient Room Table
+# ==================================================================================
+
+class PatientRoom(Base):
+    __tablename__ = 'patient_room'
+
+    patient_room_id = Column(String(36), primary_key=True, default=text('UUID()'))
+    room_number = Column(String(36), ForeignKey('rooms.room_id'), nullable=False)
+    admission_id = Column(String(36), ForeignKey('inpatients.admission_id'), nullable=False)
+    status = Column(String(255), nullable=False, server_default="Active")
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+
+    patroom_roomFk = relationship('Room', foreign_keys=[room_number])
+    patroom_inpatientsFk = relationship('Inpatient', foreign_keys=[admission_id])
+
+# ==================================================================================
+# Prescription Table
+# ==================================================================================
+
+class Prescription(Base):
+    __tablename__= 'prescriptions'
+
+    prescription_id= Column(String(36), primary_key=True,  default=text('UUID()'))
+    prescription_no = Column(String(255), nullable=False,unique=True, index=True)
+    admission_id = Column(String(36),ForeignKey("inpatients.admission_id"),nullable=True)
+    outpatient_id = Column(String(255), ForeignKey('outpatients.outpatient_id'), nullable=True)
+    date_prescribed = Column(Date,nullable=False, default=text('NOW()'))
+    patient_status = Column(String(255), nullable=True)
+    status = Column(String(255),nullable=False, default="Unpaid")
+    created_at = Column(DateTime,nullable=False, default=text('NOW()'))
+    updated_at = Column(DateTime,nullable=True, default=text('NOW()'))
+
+    inpatient_FK = relationship('Inpatient', foreign_keys=[admission_id])
+    outpatient_Fk = relationship('Outpatient', foreign_keys=[outpatient_id])
+
+    #favor na ipasok
+    medicines_prescription = relationship("Medicine_PR", primaryjoin="and_(Prescription.prescription_id==Medicine_PR.prescription_id)",back_populates="prescription_FK")
+    medical_prescription = relationship("MedicalSupplies_PR", primaryjoin="and_(Prescription.prescription_id==MedicalSupplies_PR.prescription_id)",back_populates="prescription_info")
+
+# ==================================================================================
+# Previous Doctor Table
+# ==================================================================================
+
+class PrevDoctor(Base):
+    __tablename__= 'prev_doctor'
+
+    prev_did= Column(String(36), primary_key=True, default=text('UUID()'))
+    medical_history_number = Column(String(255), ForeignKey('medical_history.medical_history_number'), nullable=True)
+    doctor_name = Column(String(255), nullable=True) 
+    created_at = Column(DateTime,nullable=False, default=text('NOW()'))
+    updated_at = Column(DateTime,nullable=True, default=text('NOW()'))
+
+    medical_history_fk = relationship("MedicalHistory", foreign_keys=[medical_history_number])
+
+# ==================================================================================
+# Previous Hospital Table
+# ==================================================================================
+
+class PrevHospital(Base):
+    __tablename__= 'prev_hospital'
+
+    prev_hid= Column(String(36), primary_key=True, default=text('UUID()'))
+    medical_history_number = Column(String(255), ForeignKey('medical_history.medical_history_number'), nullable=True)
+    hospital_name = Column(String(255), nullable=True) 
+    created_at = Column(DateTime,nullable=False, default=text('NOW()'))
+    updated_at = Column(DateTime,nullable=True, default=text('NOW()'))
+
+    medical_history_fk = relationship("MedicalHistory", foreign_keys=[medical_history_number])
+
+# ==================================================================================
+# Room Table
+# ==================================================================================
+
+class Room(Base):
+    __tablename__ = 'rooms'
+
+    room_id = Column(String(36), primary_key=True, default=text('UUID()'))
+    room_number = Column(String(255), nullable=False)
+    date_admitted = Column(DateTime, default=text('NOW()'))
+    admission_id = Column(String(255), ForeignKey('inpatients.admission_id'), nullable=True)
+    outpatient_id = Column(String(255), ForeignKey('outpatients.outpatient_id'), nullable=True)
+    room_type_id = Column(String(36), nullable=True)
+    location = Column(String(36), nullable=True)
+    room_count = Column(Integer, nullable=True)
+    room_status = Column(String(36), nullable=True, default="0")
+    active_status = Column(String(36), nullable=False)
+    created_at = Column(DateTime, default=text('NOW()'))
+    updated_at = Column(DateTime, onupdate=text('NOW()'))
+
+    # rooms_inpatientFk = relationship('Inpatient')
+    room_inpatientFk = relationship('Inpatient', foreign_keys=[admission_id])
+    room_outpatientFk = relationship('Outpatient', foreign_keys=[outpatient_id])
+
