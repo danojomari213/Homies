@@ -18,17 +18,19 @@
 
         {# User Full Name #}
         <div class="info mr-1" id="userFullNameDisplay" style="display: none">
-            <a href="#" class="d-block">
-                <span class="text-truncate" id="userFullName"></span>
+            <div class="d-block">
+                <div class="nav-item">
+                    <span class="text-truncate" id="userFullName"></span>
+                </div>
                 <div class="small text-secondary text-truncate" id="userPosition"></div>
                 <div class="small text-secondary text-truncate" id="userDepartment"></div>
-            </a>
+            </div>
         </div>
     </div>
 
     {# Sidebar Menu #}
     <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <ul class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
 
             <li class="nav-header font-weight-bold text-wrap">RECRUITMENT MANAGEMENT SYSTEM</li>
 

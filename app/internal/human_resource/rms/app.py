@@ -1,7 +1,6 @@
 # Import Packages
 from fastapi import FastAPI
 
-
 # App Instance
 RMS = FastAPI()
 

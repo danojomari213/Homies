@@ -1,11 +1,6 @@
 {% extends "layouts/admin.html" %}
 
 
-{% block topbar %}
-    {% include "pages/hiring_manager/components/topbar.html" %}
-{% endblock %}
-
-
 {% block sidebar %}
     {% include "pages/hiring_manager/components/sidebar.html" %}
 {% endblock %}
@@ -18,6 +13,7 @@
 
 {% block scripts %}
     <script src="{{url_for('src', path='/js/internal/human_resource/rms/hiring_manager/info.js')}}"></script>
+    <script src="{{url_for('src', path='/js/internal/human_resource/rms/hiring_manager/notifications.js')}}"></script>
 
     {% block page_scripts %}{% endblock %}
 {% endblock %}

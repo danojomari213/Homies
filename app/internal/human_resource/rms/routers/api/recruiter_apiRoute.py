@@ -2,6 +2,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
+from pydantic import BaseModel
 from sqlalchemy import cast, func, and_, text, Date
 from sqlalchemy.orm import Session
 from database import get_db
@@ -13,7 +14,7 @@ from dotenv import dotenv_values
 # Import Models and Schemas
 from models import *
 from app.internal.human_resource.rms.schemas \
-    import user_schemas as user, recruiter_schemas as recruiter, deptMngr_schemas as deptMngr
+    import main_schemas as main, user_schemas as user, recruiter_schemas as recruiter, deptMngr_schemas as deptMngr
 
 # From email sending
 import smtplib
@@ -34,19 +35,66 @@ AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Talent Recruiter"
 
 
-# User Information
+# ====================================================================
+# USER INFORMATION
+# ====================================================================
+
+# Get user information
 @router.get("/info", response_model = user.ShowUserInfo)
 def get_user_info(
     db: Session = Depends(get_db), 
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             user_info = db.query(Employee).filter(Employee.employee_id == user_data.employee_id).first()
             if not user_info:
                 raise HTTPException(status_code = 404, detail = {"message": "Employee does not exists"})
             else:
                 return user_info
+    except Exception as e:
+        print(e)
+
+
+# ====================================================================
+# NOTIFICATIONS
+# ====================================================================
+
+# Recruitment Notification Not Found Response
+RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE = {"message": "Recruitment Notification not found"}
+
+# Get all notifications
+@router.get("/notifications", response_model = List[main.ShowRecruitmentNotifications])
+def get_notifications(
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            return db.query(RecruitmentNotification).filter(
+                RecruitmentNotification.employee_id == user_data.employee_id
+            ).order_by(
+                RecruitmentNotification.created_at.desc()
+            ).all()
+    except Exception as e:
+        print(e)
+
+# Unread notification
+@router.put("/notifications/{notification_id}/unread")
+def unread_notification(
+    notification_id: str,
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            notification = db.query(RecruitmentNotification).filter(RecruitmentNotification.notification_id == notification_id)
+            if not notification.first():
+                raise HTTPException(status_code=404, detail=RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE)
+            else:
+                notification.update({ "is_unread": False })
+                db.commit()
+                return {"message": "A recruitment notification has been read"}
     except Exception as e:
         print(e)
 
@@ -114,7 +162,7 @@ def get_one_approved_manpower_requests(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             manpower_request = db.query(ManpowerRequest).filter(
                 ManpowerRequest.manpower_request_id == manpower_request_id,
                 or_(
@@ -181,7 +229,7 @@ def get_one_job_category(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             job_category = db.query(JobCategory).filter(
                 JobCategory.job_category_id == job_category_id, 
                 JobCategory.is_removed == False
@@ -203,7 +251,7 @@ def update_job_category(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             job_category = db.query(JobCategory).filter(
                 JobCategory.job_category_id == job_category_id,
                 JobCategory.is_removed == False
@@ -226,7 +274,7 @@ def remove_job_category(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             job_category = db.query(JobCategory).filter(JobCategory.job_category_id == job_category_id)
             if not job_category.first():
                 raise HTTPException(status_code=404, detail=JOB_CATEGORY_NOT_FOUND_RESPONSE)
@@ -259,7 +307,7 @@ def post_vacant_job(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             new_job_post = JobPost(
                 **req.dict(),
                 posted_by = user_data.employee_id
@@ -279,7 +327,7 @@ def get_all_job_posts(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(JobPost).all()
     except Exception as e:
         print(e)
@@ -294,7 +342,7 @@ def job_posts_analytics(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             query = db.query(JobPost)
 
             total_query = query
@@ -333,7 +381,7 @@ def get_job_posts_data(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             target_column = cast(JobPost.created_at, Date)
 
@@ -380,7 +428,7 @@ def update_job_post(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             job_post = db.query(JobPost).filter(JobPost.job_post_id == job_post_id)
             if not job_post.first():
                 raise HTTPException(status_code = 404, detail = JOB_POST_NOT_FOUND_RESPONSE)
@@ -400,7 +448,7 @@ def end_recruiting(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             job_post = db.query(JobPost).filter(JobPost.job_post_id == job_post_id)
             if not job_post.first():
                 raise HTTPException(status_code = 404, detail = JOB_POST_NOT_FOUND_RESPONSE)
@@ -423,14 +471,33 @@ def end_recruiting(
 APPLICANT_NOT_FOUND_RESPONSE = {"message": "Applicant not found"}
 
 
+# class ShowApplicantsDT(main.DataTable):
+#     data: List[recruiter.ShowApplicant]
+
 # Get All Applicants
 @router.get("/applicants", response_model = List[recruiter.ShowApplicant])
 def get_all_applicants(
+    # draw = Optional[int],
+    # start = Optional[int],
+    # length = Optional[int],
     db: Session = Depends(get_db),
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+
+            # draw = int(draw)
+            # start = int(start)
+            # length = int(length)
+
+            # totalRecords = db.query(Applicant).count()
+            
+            # return {
+            #     "draw": draw,
+            #     "total": totalRecords,
+            #     "data": db.query(Applicant).slice(start, start + length).all()
+            # }
+            
             return db.query(Applicant).all()
     except Exception as e:
         print(e)
@@ -445,7 +512,7 @@ def applicants_analytics(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             query = db.query(Applicant)
 
             for_evaluation_query = query.filter(Applicant.status == "For evaluation")
@@ -507,7 +574,7 @@ def get_applicants_data(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
 
             target_column = cast(Applicant.created_at, Date)
 
@@ -535,7 +602,7 @@ def get_one_applicant(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             applicant = db.query(Applicant).filter(Applicant.applicant_id == applicant_id).first()
             if not applicant:
                 raise HTTPException(status_code = 404, detail = APPLICANT_NOT_FOUND_RESPONSE)
@@ -554,7 +621,7 @@ def evaluate_applicant(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             applicant = db.query(Applicant).filter(Applicant.applicant_id == applicant_id)
             if not applicant.first():
                 raise HTTPException(status_code = 404, detail = APPLICANT_NOT_FOUND_RESPONSE)
@@ -639,7 +706,7 @@ def get_all_applicants_per_job(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(Applicant).filter(Applicant.job_post_id == job_post_id).all()
     except Exception as e:
         print(e)
@@ -653,7 +720,7 @@ def applicants_per_job_analytics(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             query = db.query(Applicant)
             
             # Total Applicants
@@ -737,7 +804,7 @@ def for_evaluation_applicants(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(Applicant).filter(
                 Applicant.job_post_id == job_post_id,
                 Applicant.status == 'For evaluation'
@@ -754,7 +821,7 @@ def evaluated_applicants(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(Applicant).filter(
                 Applicant.job_post_id == job_post_id,
                 or_(
@@ -778,7 +845,7 @@ def rejected_applicants(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(Applicant).filter(
                 Applicant.job_post_id == job_post_id,
                 Applicant.status == 'Rejected from evaluation'

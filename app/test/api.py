@@ -168,6 +168,28 @@ def get_all_positions(db: Session = Depends(get_db)):
 
 
 # =========================================================================
+# EMPLOYEES
+# =========================================================================
+
+# Get All Employees
+@router.get("/employees", response_model = List[schemas.ShowEmployee])
+def get_all_employees(db: Session = Depends(get_db)):
+    return db.query(Employee).all()
+
+# Create Employees
+@router.post("/employees")
+def create_position(req: schemas.CreateEmployee, db: Session = Depends(get_db)):
+    new_employee = Employee(**req.dict())
+    db.add(new_employee)
+    db.commit()
+    db.refresh(new_employee)
+    return {
+        "data": new_employee,
+        "msg": "A new employee has been added"
+    } 
+
+
+# =========================================================================
 # EMPLOYMENT TYPE
 # =========================================================================
 
@@ -239,3 +261,9 @@ def get_user_info(req: schemas.UserRole, db: Session = Depends(get_db)):
         }
     except Exception as e:
         print(e)
+
+
+# Get User Roles
+@router.get("/user-roles", response_model=List[schemas.ShowUserRole])
+def get_user_roles(db: Session = Depends(get_db)):
+    return db.query(UserRole).all()

@@ -22,19 +22,66 @@ AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Department Manager"
 
 
-# User Information
+# ====================================================================
+# USER INFORMATION
+# ====================================================================
+
+# Get user information
 @router.get("/info", response_model = user.ShowUserInfo)
 def get_user_info(
     db: Session = Depends(get_db), 
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             user_info = db.query(Employee).filter(Employee.employee_id == user_data.employee_id).first()
             if not user_info:
                 raise HTTPException(status_code = 404, detail = {"message": "Employee does not exist"})
             else:
                 return user_info
+    except Exception as e:
+        print(e)
+
+
+# ====================================================================
+# NOTIFICATIONS
+# ====================================================================
+
+# Recruitment Notification Not Found Response
+RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE = {"message": "Recruitment Notification not found"}
+
+# Get all notifications
+@router.get("/notifications", response_model = List[main.ShowRecruitmentNotifications])
+def get_notifications(
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            return db.query(RecruitmentNotification).filter(
+                RecruitmentNotification.employee_id == user_data.employee_id
+            ).order_by(
+                RecruitmentNotification.created_at.desc()
+            ).all()
+    except Exception as e:
+        print(e)
+
+# Unread notification
+@router.put("/notifications/{notification_id}/unread")
+def unread_notification(
+    notification_id: str,
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            notification = db.query(RecruitmentNotification).filter(RecruitmentNotification.notification_id == notification_id)
+            if not notification.first():
+                raise HTTPException(status_code=404, detail=RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE)
+            else:
+                notification.update({ "is_unread": False })
+                db.commit()
+                return {"message": "A recruitment notification has been read"}
     except Exception as e:
         print(e)
 
@@ -56,7 +103,9 @@ def create_manpower_request(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            
+            # Create new manpower request
             new_manpower_request = ManpowerRequest(
                 **req.dict(),
                 requested_by = user_data.employee_id, 
@@ -65,6 +114,42 @@ def create_manpower_request(
             db.add(new_manpower_request)
             db.commit()
             db.refresh(new_manpower_request)
+
+            # Compose notification for Dept. Head
+
+            # Get the user department
+            user_department = db.query(Department).join(SubDepartment).filter(
+                Department.department_id == SubDepartment.department_id
+            ).join(Position).filter(
+                SubDepartment.sub_department_id == Position.sub_department_id
+            ).join(Employee).filter(
+                Employee.employee_id == user_data.employee_id, 
+                Position.position_id == Employee.position_id
+            ).first()
+
+
+            # Get the department head
+            department_heads = db.query(Employee).join(Position).filter(
+                Position.name == "Department Head"
+            ).join(SubDepartment).join(Department).filter(
+                Department.department_id == user_department.department_id
+            ).all()
+
+            # Create notification record
+            for department_head in department_heads:
+                new_notification = RecruitmentNotification(
+                    employee_id = department_head.employee_id,
+                    notification_type = "Manpower Request",
+                    notification_subtype = "Request for Manpower",
+                    link = "manpower-requests/" + new_manpower_request.manpower_request_id,
+                    author_id = user_data.employee_id,
+                    reference_id = new_manpower_request.manpower_request_id
+                )
+                db.add(new_notification)
+            
+            # Commit changes
+            db.commit()
+
             return {
                 "data": new_manpower_request,
                 "message": "A manpower request has been submitted successfully"
@@ -80,7 +165,7 @@ def get_all_requisitions(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(ManpowerRequest).filter(ManpowerRequest.requested_by == user_data.employee_id).all()
     except Exception as e:
         print(e)
@@ -95,7 +180,7 @@ def requisition_analytics(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             query = db.query(ManpowerRequest)
             requested_by_filter = ManpowerRequest.requested_by == user_data.employee_id
             
@@ -179,7 +264,7 @@ def requisition_data(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
 
             # Set the target column
             target_column = cast(ManpowerRequest.created_at, Date)
@@ -209,7 +294,7 @@ def get_one_requisition(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             manpower_request = db.query(ManpowerRequest).filter(ManpowerRequest.manpower_request_id == manpower_request_id).first()
             if not manpower_request:
                 return MANPOWER_REQUEST_NOT_FOUND_RESPONSE
@@ -227,7 +312,7 @@ def update_requisition(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             manpower_request = db.query(ManpowerRequest).filter(ManpowerRequest.manpower_request_id == manpower_request_id)
             if not manpower_request.first():
                 raise HTTPException(status_code=404, detail=MANPOWER_REQUEST_NOT_FOUND_RESPONSE) 
@@ -247,15 +332,27 @@ def delete_requisition(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            
             manpower_request = db.query(ManpowerRequest).filter(
                 ManpowerRequest.manpower_request_id == manpower_request_id,
                 ManpowerRequest.requested_by == user_data.employee_id
             )
+            
             if not manpower_request.first():
                 raise HTTPException(status_code=404, detail=MANPOWER_REQUEST_NOT_FOUND_RESPONSE) 
             else:
+
+                # Delete manpower request
                 manpower_request.delete(synchronize_session = False)
+                
+                # Delete notifications
+                notifications = db.query(RecruitmentNotification).filter(
+                    RecruitmentNotification.reference_id == manpower_request_id
+                )
+                notifications.delete(synchronize_session = False)
+                
+                # Commit changes
                 db.commit()
                 return {"message": "A manpower request is successfully deleted"}
     except Exception as e:
@@ -270,7 +367,7 @@ def mark_requisition_as_completed(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             requisition = db.query(ManpowerRequest).filter(
                 ManpowerRequest.manpower_request_id == manpower_request_id,
                 ManpowerRequest.requested_by == user_data.employee_id
@@ -304,7 +401,7 @@ def department_positions(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             user_sub_department = db.query(SubDepartment).join(Position).filter(
                     SubDepartment.sub_department_id == Position.sub_department_id
                 ).join(Employee).filter(
@@ -335,7 +432,7 @@ def get_all_employment_types(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             return db.query(EmploymentType).all()
     except Exception as e:
         print(e)
@@ -358,7 +455,7 @@ def add_onboarding_task(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -395,7 +492,7 @@ def get_all_general_onboarding_tasks(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
 
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -426,7 +523,7 @@ def get_all_general_onboarding_tasks(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -457,7 +554,7 @@ def get_all_general_onboarding_tasks(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -488,7 +585,7 @@ def get_all_general_onboarding_tasks(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -520,7 +617,7 @@ def get_one_onboarding_task(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -560,7 +657,7 @@ def remove_general_onboarding_task(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -618,7 +715,7 @@ def get_all_hired_applicants(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -651,7 +748,7 @@ def hired_applicants_count(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -683,7 +780,7 @@ def get_all_hired_applicants(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Sub-department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -727,7 +824,7 @@ def get_all_onboarding_employees(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
 
             # Get User Department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -759,7 +856,7 @@ def onboarding_employees_analytics(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             
             # Get User Department
             user_sub_department = db.query(SubDepartment).join(Position).filter(
@@ -794,7 +891,7 @@ def get_one_onboarding_employee(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_employee = db.query(OnboardingEmployee).filter(
                 OnboardingEmployee.onboarding_employee_id == onboarding_employee_id
             ).first()
@@ -816,7 +913,7 @@ def update_onboarding_employee(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_employee = db.query(OnboardingEmployee).filter(OnboardingEmployee.onboarding_employee_id == onboarding_employee_id)
             if not onboarding_employee.first():
                 raise HTTPException(status_code=404, detail=ONBOARDING_EMPLOYEE_NOT_FOUND)
@@ -846,7 +943,7 @@ def add_employee_onboarding_task(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_employee = db.query(OnboardingEmployee).filter(
                 OnboardingEmployee.onboarding_employee_id == onboarding_employee_id
             ).first()
@@ -881,7 +978,7 @@ def get_all_onboarding_employee_tasks(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_employee = db.query(OnboardingEmployee).filter(
                 OnboardingEmployee.onboarding_employee_id == onboarding_employee_id
             ).first()
@@ -904,7 +1001,7 @@ def get_one_onboarding_employee_tasks(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_employee_task = db.query(OnboardingEmployeeTask).filter(
                 OnboardingEmployeeTask.onboarding_employee_task_id == onboarding_employee_task_id
             ).first()
@@ -926,7 +1023,7 @@ def update_onboarding_employee_task_status(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_task = db.query(OnboardingEmployeeTask).filter(
                 OnboardingEmployeeTask.onboarding_employee_task_id == onboarding_employee_task_id
             )
@@ -956,7 +1053,7 @@ def delete_onboarding_employee_task(
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             onboarding_employee_task = db.query(OnboardingEmployeeTask).filter(
                 OnboardingEmployeeTask.onboarding_employee_task_id == onboarding_employee_task_id
             )
@@ -972,7 +1069,7 @@ def delete_onboarding_employee_task(
 
                 # Delete the onboarding task if it doesn't have relationship to other tables
                 onboarding_employee_tasks_count = db.query(OnboardingEmployeeTask).filter(
-                    OnboardingEmployeeTask.onboarding_employee_task_id == onboarding_task_id
+                    OnboardingEmployeeTask.onboarding_task_id == onboarding_task_id
                 ).count()
 
                 if onboarding_employee_tasks_count == 0:

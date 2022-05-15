@@ -21,7 +21,6 @@ ifSelectorExist('#addManpowerRequestForm', () => {
     /** Vacant Position For Add Select2 */
     GET_ajax(`${ ROUTE.API.DM }positions`, {
         success: result => {
-            console.log(result)
             if(result) {
                 let vacantPosition = $('#vacantPosition');
                 vacantPosition.empty();
@@ -238,7 +237,7 @@ initDataTable('#manpowerRequestDT', {
     // debugMode: true,
     enableButtons: true,
     columns: [
-
+        
         // Created At (For Default Sorting)
         { data: 'created_at', visible: false },
 
@@ -369,9 +368,9 @@ initDataTable('#manpowerRequestDT', {
                     case "For signature":
                         additionalOptions = editBtn + cancelBtn;
                         break;
-                    // case "Approved":
-                    //     additionalOptions = markAsCompletedBtn;
-                    //     break;
+                    case "Approved":
+                        additionalOptions = markAsCompletedBtn;
+                        break;
                     case "Rejected for approval":
                     case "Rejected for signing":
                         additionalOptions = deleteBtn;
@@ -467,6 +466,10 @@ const getManpowerRequestDetails = () => {
                         case "Approved":
                             $('#cancelManpowerRequestModal').remove();
                             return `
+                                <div class="btn btn-sm btn-success btn-block" onclick="markAsCompleted('${ manpowerRequestID }')">
+                                    ${ TEMPLATE.ICON_LABEL("check-circle", "Mark as completed") }
+                                </div>
+                                <hr>
                                 <div class="btn btn-sm btn-secondary btn-block" onclick="printManpowerRequest()">
                                     ${ TEMPLATE.ICON_LABEL("print", "Print Manpower Request Form") }
                                 </div>
@@ -877,8 +880,8 @@ validateForm('#deleteManpowerRequestForm', {
     messages: { requisitionID: { required: 'Requisition ID should be here' }},
     submitHandler: () => {
         const formData = generateFormData('#deleteManpowerRequestForm');
-        const requisitionID = formData.get('requisitionID');
-        DELETE_ajax(`${ ROUTE.API.DM }requisitions/${ requisitionID }`, {
+        const manpowerRequestID = formData.get('manpowerRequestID');
+        DELETE_ajax(`${ ROUTE.API.DM }manpower-requests/${ manpowerRequestID }`, {
             success: result => {
                 if(result) {
                     hideModal('#deleteManpowerRequestModal');
@@ -941,6 +944,9 @@ validateForm('#markAsCompletedForm', {
 
                     // Hide Modal
                     hideModal('#markAsCompletedModal');
+
+                    // Reload Datatable
+                    reloadDataTable('#manpowerRequestsDT');
 
                     // Set buttons to unload state
                     btnToUnloadState('#confirmMarkAsCompletedBtn', TEMPLATE.LABEL_ICON('Yes, mark it.', 'check-circle'));

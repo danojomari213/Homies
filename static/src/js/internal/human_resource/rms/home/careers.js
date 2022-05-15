@@ -24,6 +24,8 @@ history.replaceState(null, null, getURLQueryString(urlParamsObj));
  * ==============================================================================
  */
 
+// Back to careers page
+const backToCareers = () => location.assign('/careers');
 
 // Set Search Form Values according to URL parameters
 const setSearchFormValues = () => {
@@ -78,47 +80,11 @@ const redirectWithURLParams = () => {
 
 ifSelectorExist('#searchJobForm', () => {
 
-    /** Date Posted Select 2 */
-    const datePostedOptions = [
-        {
-            "label": "Last 7 days",
-            "value": moment().subtract(7, 'days').format('YYYY-MM-DD')
-        }, {
-            "label": "Last 14 days",
-            "value": moment().subtract(14, 'days').format('YYYY-MM-DD')
-        }, {
-            "label": "Last month",
-            "value": moment().subtract(1, 'months').format('YYYY-MM-DD')
-        }, {
-            "label": "Last 2 months",
-            "value": moment().subtract(2, 'months').format('YYYY-MM-DD')
-        }, {
-            "label": "Last 6 months",
-            "value": moment().subtract(6, 'months').format('YYYY-MM-DD')
-        }
-    ]
-
-    let datePosted = $('#datePosted');
-    datePosted.empty();
-    datePosted.append(`<option></option>`);
-    
-    datePostedOptions.length > 0
-        ? datePostedOptions.forEach(o => datePosted.append(`<option value="${ o.value }">${ o.label }</option>`))
-        : employmentType.append(`<option disabled>No data</option>`)
-
-    datePosted.select2({
-        placeholder: "Date Posted",
-    });
-
-    datePosted.val(urlParamsObj.datePosted).trigger('change');
-
-
     /** Job Categories Select 2 */
     GET_ajax(`${ BASE_PUBLIC_API }careers/job-categories`, {
         success: result => {
             let jobCategory = $('#jobCategory');
-            jobCategory.empty();
-            jobCategory.append(`<option></option>`);
+            jobCategory.empty().append(`<option></option>`);
             
             result.length > 0
                 ? result.forEach(c => jobCategory.append(`<option value="${ c.job_category_id }">${ c.name }</option>`))
@@ -139,8 +105,7 @@ ifSelectorExist('#searchJobForm', () => {
     GET_ajax(`${ BASE_PUBLIC_API }careers/employment-types`, {
         success: result => {
             let employmentType = $('#employmentType');
-            employmentType.empty();
-            employmentType.append(`<option></option>`);
+            employmentType.empty().append(`<option></option>`);
             
             result.length > 0
                 ? result.forEach(t => employmentType.append(`<option value="${ t.employment_type_id }">${ t.name }</option>`))
@@ -148,11 +113,47 @@ ifSelectorExist('#searchJobForm', () => {
         
             employmentType.select2({
                 placeholder: "Employment Type",
-            });
-        
-            employmentType.val(urlParamsObj.employmentType).trigger('change');
+            }).val(urlParamsObj.employmentType).trigger('change');
         }
     });
+
+    $('#searchJobForm_Loader').remove();
+    showElement('#searchJobForm');
+
+    /** Date Posted Select 2 */
+    const datePostedOptions = [
+        {
+            "label": "Last 7 days",
+            "value": moment().subtract(7, 'days').format('YYYY-MM-DD')
+        }, {
+            "label": "Last 14 days",
+            "value": moment().subtract(14, 'days').format('YYYY-MM-DD')
+        }, {
+            "label": "Last month",
+            "value": moment().subtract(1, 'months').format('YYYY-MM-DD')
+        }, {
+            "label": "Last 2 months",
+            "value": moment().subtract(2, 'months').format('YYYY-MM-DD')
+        }, {
+            "label": "Last 6 months",
+            "value": moment().subtract(6, 'months').format('YYYY-MM-DD')
+        }, {
+            "label": "Last year",
+            "value": moment().subtract(1, 'years').format('YYYY-MM-DD')
+        }
+    ]
+
+    let datePosted = $('#datePosted');
+    datePosted.empty().append(`<option></option>`);
+    
+    datePostedOptions.length > 0
+        ? datePostedOptions.forEach(o => datePosted.append(`<option value="${ o.value }">${ o.label }</option>`))
+        : datePosted.append(`<option disabled>No data yet</option>`)
+
+    datePosted.select2({
+        placeholder: "Date Posted",
+    }).val(urlParamsObj.datePosted).trigger('change');
+
 });
 
 
@@ -369,9 +370,16 @@ ifSelectorExist('#availableJobDetails', () => {
             });
 
             // Set Salary Range
-            result.is_salary_visible
-                ? setContent('#salaryRange', `${ formatCurrency(manpowerRequest.min_monthly_salary) } - ${ formatCurrency(manpowerRequest.max_monthly_salary) }`)
-                : hideElement('#salaryRangeDisplay')
+            if(result.is_salary_visible) {
+                const minSalary = manpowerRequest.min_monthly_salary;
+                const maxSalary = manpowerRequest.max_monthly_salary
+                setContent('#salaryRange', `
+                    <div>Range: ${ formatCurrency(minSalary) } - ${ formatCurrency(maxSalary) }</div>
+                    <div>Average: ${ formatCurrency((minSalary + maxSalary)/2) }</div>
+                `);
+            } else {
+                hideElement('#salaryRangeDisplay')
+            }
 
             // Set Open Until
             setContent('#openUntil', () => {
@@ -386,6 +394,7 @@ ifSelectorExist('#availableJobDetails', () => {
 
             if(isBeforeToday(result.expiration_date)) {
                 $('#applicationForm').remove();
+                $('#applyNowRedirect').remove();
                 showElement('#applicationsNotAvailable');
             } else {
                 $('#applicationsNotAvailable').remove();
@@ -420,19 +429,18 @@ ifSelectorExist('#availableJobDetails', () => {
      * page, it will not re-iterate even though user will visit it
      * multiple times, unless tab will close
      */
-    let visitedJobPosts = JSON.parse(sessionStorage.getItem('visited_job_posts'))
+    let visitedJobPosts = JSON.parse(sessionStorage.getItem('visited_job_posts'));
     if(!visitedJobPosts) {
         sessionStorage.setItem('visited_job_posts', JSON.stringify([jobPostID]));
         incrementPageViews();
     } else {
         const isVisited = visitedJobPosts.includes(jobPostID)
         if(!isVisited) {
-            visitedJobPosts.push(jobPostID)
+            visitedJobPosts.push(jobPostID);
             sessionStorage.setItem('visited_job_posts', JSON.stringify(visitedJobPosts));
             incrementPageViews();
         }
     }
-
 });
 
 
@@ -727,12 +735,10 @@ $('#resetFilters').on('click', () => {
         urlParamsObj.jobCategory = null;
         urlParamsObj.employmentType = null;
         urlParamsObj.page = null;
-
         $("#datePosted").val('').trigger('change');
         $("#jobCategory").val('').trigger('change');
         $("#employmentType").val('').trigger('change');
 
-        
         // Show loading status
         setContent('#availableJobList', `
             <div class="col-12">

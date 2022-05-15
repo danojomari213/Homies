@@ -93,6 +93,7 @@ initDataTable('#manpowerRequestDT', {
             data: null,
             render: data => {
                 const manpowerRequestID = data.manpower_request_id;
+
                 return TEMPLATE.DT.OPTIONS(`
                     <a 
                         class="dropdown-item d-flex"
@@ -236,7 +237,7 @@ onHideModal('#rejectRequestModal', () => resetForm('#rejectRequestForm'));
 
 /** Update Request For approval */
 const requestApproval = (data) => {
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
 
     const ifError = () => {
         if(data.request_status == "Approved") {

@@ -26,21 +26,67 @@ router = APIRouter(prefix = "/api/department-head")
 AUTHORIZED_SUBSYSTEM = "Recruitment"
 AUTHORIZED_ROLE = "Department Head"
 
+# ====================================================================
+# USER INFORMATION
+# ====================================================================
 
-# User Information
+# Get user information
 @router.get("/info", response_model = user.ShowUserInfo)
 def get_user_info(
     db: Session = Depends(get_db), 
     user_data: UserData = Depends(get_user)
 ):
     try:
-        if(isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE)):
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             user_info = db.query(Employee).filter(Employee.employee_id == user_data.employee_id).first()
             if not user_info:
                 raise HTTPException(status_code = 404, detail = {"message": "Employee does not exist"})
             return user_info
     except Exception as e:
         print(e)
+
+# ====================================================================
+# NOTIFICATIONS
+# ====================================================================
+
+# Recruitment Notification Not Found Response
+RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE = {"message": "Recruitment Notification not found"}
+
+# Get all notifications
+@router.get("/notifications", response_model = List[main.ShowRecruitmentNotifications])
+def get_notifications(
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            return db.query(RecruitmentNotification).filter(
+                RecruitmentNotification.employee_id == user_data.employee_id
+            ).order_by(
+                RecruitmentNotification.created_at.desc()
+            ).all()
+    except Exception as e:
+        print(e)
+
+# Unread notification
+@router.put("/notifications/{notification_id}/unread")
+def unread_notification(
+    notification_id: str,
+    db: Session = Depends(get_db), 
+    user_data: UserData = Depends(get_user)
+):
+    try:
+        if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
+            notification = db.query(RecruitmentNotification).filter(RecruitmentNotification.notification_id == notification_id)
+            if not notification.first():
+                raise HTTPException(status_code=404, detail=RECRUITMENT_NOTIF_NOT_FOUND_RESPONSE)
+            else:
+                notification.update({ "is_unread": False })
+                db.commit()
+                return {"message": "A recruitment notification has been read"}
+    except Exception as e:
+        print(e)
+
 
 # ====================================================================
 # MANPOWER REQUESTS
@@ -100,9 +146,6 @@ def manpower_requests_analytics(
                 Employee.employee_id == user_data.employee_id, 
                 Position.position_id == Employee.position_id
             ).first()
-
-            print("Test")
-            print(user_department)
 
             if not user_department:
                 return HTTPException(status_code=404, detail={"message": "User department not found"})
@@ -233,15 +276,47 @@ def sign_manpower_request(
     try:
         if isAuthorized(user_data, AUTHORIZED_SUBSYSTEM, AUTHORIZED_ROLE):
             manpower_request = db.query(ManpowerRequest).filter(ManpowerRequest.manpower_request_id == manpower_request_id)
+
             if not manpower_request.first():
                 return HTTPException(status_code=404, detail=MANPOWER_REQUEST_NOT_FOUND_RESPONSE)
             else:
+                manpower_requested_by = db.query(Employee).filter(
+                    Employee.employee_id == manpower_request.first().requested_by
+                ).first()
+
                 if req.request_status == "For approval":
                     manpower_request.update({
                         "request_status": req.request_status,
                         "signed_by": user_data.employee_id,
                         "signed_at": text('NOW()')
                     })
+
+                    # Create notification for requestor
+                    new_notification_1 = RecruitmentNotification(
+                        employee_id = manpower_requested_by.employee_id,
+                        notification_type = "Manpower Request",
+                        notification_subtype = "Signed Request",
+                        link = "manpower-requests/" + manpower_request.first().manpower_request_id,
+                        author_id = user_data.employee_id,
+                        reference_id = manpower_request.first().manpower_request_id
+                    )
+
+                    # Create notification for hiring manager
+                    hiring_managers = db.query(Employee).join(Position).filter(
+                        Position.position_id == Employee.position_id,
+                        Position.name == "Hiring Manager"
+                    ).all()
+                    for manager in hiring_managers:
+                        new_notification_2 = RecruitmentNotification(
+                            employee_id = manager.employee_id,
+                            notification_type = "Manpower Request",
+                            notification_subtype = "Signed Request",
+                            link = "manpower-requests/" + manpower_request.first().manpower_request_id,
+                            author_id = user_data.employee_id,
+                            reference_id = manpower_request.first().manpower_request_id
+                        )
+                        db.add(new_notification_2)
+
                 elif req.request_status == "Rejected for signing":
                     manpower_request.update({
                         "request_status": req.request_status,
@@ -249,6 +324,18 @@ def sign_manpower_request(
                         "rejected_by": user_data.employee_id,
                         "rejected_at": text('NOW()')
                     })
+
+                    # Create notification for requestor
+                    new_notification_1 = RecruitmentNotification(
+                        employee_id = manpower_requested_by.employee_id,
+                        notification_type = "Manpower Request",
+                        notification_subtype = "Rejected For Signing",
+                        link = "manpower-requests/" + manpower_request.first().manpower_request_id,
+                        author_id = user_data.employee_id,
+                        reference_id = manpower_request.first().manpower_request_id
+                    )
+                
+                db.add(new_notification_1)
                 db.commit()
                 return {"message": "A manpower request has been signed"}
     except Exception as e:

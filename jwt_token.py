@@ -26,7 +26,7 @@ def generate_token(data: dict, remember: bool, expires_delta: Optional[timedelta
         expires_delta = 31536000
 
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.utcnow() + timedelta(minutes=expires_delta)
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -41,12 +41,19 @@ def verify_token(token: str):
         headers = {"WWW-Authenticate": "Bearer"}
     )
     try:
+        # Get the payload
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Get the data from the payload
         user_id: str = payload.get("user_id")
         employee_id: str = payload.get("employee_id")
         roles: str = payload.get("roles")
+        
+        # Verify the payload data
         if not user_id or not roles:
             raise credentials_exception
+
+        # Return the token data
         return TokenData(
             user_id = user_id,
             employee_id = employee_id,
@@ -67,4 +74,3 @@ def get_token(access_token: str = Cookie('access_token')):
             raise HTTPException(status_code = 401, detail = "Invalid token")
     except JWTError:
         raise HTTPException(status_code = 401, detail = "Please login first")
-        

@@ -180,6 +180,9 @@ def render(
         Employee.employee_id == user_data['employee_id'], 
         Employee.position_id == Position.position_id
     ).first()
+
+    if not user_department:
+        return errTemplate.page_not_found(req)
     
     onboarding_employee = db.query(OnboardingEmployee).filter(
         OnboardingEmployee.onboarding_employee_id == onboarding_employee_id,
@@ -195,10 +198,10 @@ def render(
 
     if not onboarding_employee:
         return errTemplate.page_not_found(req)
-    else:
-        return template.TemplateResponse(TEMPLATES_PATH + "onboarding_employee_tasks.html", {
-            "request": req,
-            "page_title": "Onboarding Tasks",
-            "sub_title": "Manage employee tasks and monitor performance",
-            "active_navlink": "Onboarding Employees"
-        })
+    
+    return template.TemplateResponse(TEMPLATES_PATH + "onboarding_employee_tasks.html", {
+        "request": req,
+        "page_title": "Onboarding Tasks",
+        "sub_title": "Manage employee tasks and monitor performance",
+        "active_navlink": "Onboarding Employees"
+    })

@@ -74,17 +74,18 @@ initDataTable('#onboardingEmployeesDT', {
                     tasks.forEach(t => { if(t.status == "Completed") completed++ });
     
                     var taskProgress = ((completed/tasks.length) * 100).toFixed(2);
-    
+                    
                     var bgColor;
-                    if(taskProgress <= 25) bgColor = 'danger';
-                    else if(taskProgress <= 75) bgColor = 'warning';
-                    else if(taskProgress < 100) bgColor = 'info';
-                    else if(taskProgress == 100) bgColor = 'success';
+                    if(taskProgress < 25) bgColor = 'danger';
+                    else if(taskProgress < 50) bgColor = 'warning';
+                    else if(taskProgress < 75) bgColor = 'info';
+                    else if(taskProgress < 100) bgColor = 'success';
+                    else if(taskProgress == 100) bgColor = 'primary';
     
                     var completeStatus = taskProgress == 100
                         ? `
                             <small>
-                                <i class="fas fa-check-circle text-success mr-1"></i>
+                                <i class="fas fa-check text-success mr-1"></i>
                                 <span>Completed</span>
                             </small>
                         ` 

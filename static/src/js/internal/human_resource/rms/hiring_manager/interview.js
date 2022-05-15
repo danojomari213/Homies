@@ -327,8 +327,31 @@ initDataTable('#interviewSchedulesDT', {
         {
             data: null,
             render: data => {
-                const interviewees = data.interviewees.length;
-                return `${ interviewees } ${ pluralize('interviewee', interviewees) }`
+                const interviewees = data.interviewees;
+                let interviewedCount = 0;
+                
+                interviewees.forEach(i => {
+                    if(i.is_interviewed) interviewedCount++;
+                });
+
+                const interviewed = () => {
+                    if(interviewedCount == interviewees.length) {
+                        return TEMPLATE.SUBTEXT(`
+                            <i class="fas fa-check text-primary mr-1"></i>
+                            <span>All applicants are interviewed</span>
+                        `)
+                    } else {
+                        return TEMPLATE.SUBTEXT(`
+                            <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+                            <span>${ interviewees.length - interviewedCount } of them ${ interviewees.length - interviewedCount > 1 ? 'are' : 'is' } not yet interviewed</span>
+                        `)
+                    }
+                }
+                
+                return `
+                    <div>${ interviewees.length } ${ pluralize('interviewee', interviewees.length) }</div>
+                    ${ interviewed() }</div>
+                `
             }
         },
 
@@ -488,7 +511,6 @@ ifSelectorExist('#interviewScheduleDetails', () => {
 
 /** Scheduled Interviewees DataTable */
 initDataTable('#intervieweesDT', {
-    // debugMode: true,
     url: `${ ROUTE.API.H }interview-schedules/${ interviewScheduleID }/interviewees`,
     columns: [
 
@@ -551,22 +573,54 @@ initDataTable('#intervieweesDT', {
         {
             data: null,
             render: data => {
-                const intervieweeID = data.interviewee_id
+                const intervieweeID = data.interviewee_id;
+                const isInterviewed = data.is_interviewed;
 
                 const viewIntervieweeDetails = () => {
-                    return `
-                        <div 
-                            class="dropdown-item d-flex"
-                            role="button"
-                            onclick="viewIntervieweeDetails('${ intervieweeID }')"                  
-                        >
-                            <div style="width: 2rem"><i class="fas fa-user-tie mr-1"></i></div>
-                            <div>
-                                <div>View Interviewee Details</div>
-                                ${ TEMPLATE.SUBTEXT('View the details of this interviewee') }
+                    if(isInterviewed) {
+                        const applicant_status = data.applicant_info.status;
+                        if(applicant_status === "Hired" || applicant_status === "Contract signed")
+                            return `
+                                <div 
+                                    class="dropdown-item d-flex"
+                                    role="button"
+                                    onclick="viewIntervieweeDetails('${ intervieweeID }')"                  
+                                >
+                                    <div style="width: 2rem"><i class="fas fa-user-tie mr-1"></i></div>
+                                    <div>
+                                        <div>View applicant details</div>
+                                        ${ TEMPLATE.SUBTEXT('View the full details of the applicant') }
+                                    </div>
+                                </div>
+                            `;
+                        else return `
+                            <div 
+                                class="dropdown-item d-flex"
+                                role="button"
+                                onclick="viewIntervieweeDetails('${ intervieweeID }')"                  
+                            >
+                                <div style="width: 2rem"><i class="fas fa-user-tie mr-1"></i></div>
+                                <div>
+                                    <div>Evaluate this applicant</div>
+                                    ${ TEMPLATE.SUBTEXT('Hire or reject this applicant') }
+                                </div>
                             </div>
-                        </div>
-                    `
+                        `
+                    } else {
+                        return `
+                            <div 
+                                class="dropdown-item d-flex"
+                                role="button"
+                                onclick="viewIntervieweeDetails('${ intervieweeID }')"                  
+                            >
+                                <div style="width: 2rem"><i class="fas fa-user-tie mr-1"></i></div>
+                                <div>
+                                    <div>View Interviewee Details</div>
+                                    ${ TEMPLATE.SUBTEXT('View the details of this interviewee') }
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
 
                 if(isEmptyOrNull(data.is_interviewed)) {
@@ -609,8 +663,6 @@ const viewIntervieweeDetails = (intervieweeID) => {
             const applicant = result.applicant_info;
             const applicant_status = applicant.status;
             
-            console.log(result)
-
             /**
              * Load Interviewee Details
              * Not yet interviewed
@@ -747,7 +799,7 @@ onHideModal('#intervieweeDetailsModal', () => {
 
 /** On Interviewed Details Modal has been hidden */
 onHideModal('#interviewedDetailsModal', () => {
-    $('#intervieweeDetailsTab').tab('show');
+    $('#interviewedDetailsTab').tab('show');
 
     // Reset Form
     resetForm('#interviewedApplicantHiringForm');
@@ -765,6 +817,12 @@ onHideModal('#interviewedDetailsModal', () => {
             </td>
         </tr>
     `);
+
+    // Hide Remarks Field
+    hideElement('#remarksField');
+
+    // Disable submit btn
+    disableElement('#submitBtn');
 
     // Remove Applicant Timeline Loader
     showElement('#interviewedTimelineLoader');

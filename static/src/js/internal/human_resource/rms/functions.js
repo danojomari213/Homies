@@ -43,41 +43,48 @@ const initDataTable = (selector = "", dtOptions = {
 	const ajax = {
 		url: dtOptions.url,
 		headers: AJAX_HEADERS,
-		dataSrc: ""
+		dataSrc: "",
+		// dataSrc: "data",
+		// dataFilter: function(data){
+        //     var json = jQuery.parseJSON( data );
+		// 	json.recordsTotal = json.total;
+        //     json.recordsFiltered = json.total;
+        //     return JSON.stringify( json ); // return JSON string
+        // }
 	}
 
 	const dtLanguage = {
 		emptyTable: `
-        <div class="text-center p-5">
-            <h3>No records yet</h3>
-            <div class="text-secondary">Hey! We found no records here yet.</div>
-        </div>
-    `,
+			<div class="text-center p-5">
+				<h3>No records yet</h3>
+				<div class="text-secondary">Hey! We found no records here yet.</div>
+			</div>
+		`,
 		loadingRecords: `
-        <div class="text-center py-5 wait">
-            <div class="spinner-border text-primary mb-3" role="status">
-                <span class="sr-only">Loading ...</span>
-            </div>
-            <div class="text-secondary">Making it ready ...</div>
-        </div>
-    `,
+			<div class="text-center py-5 wait">
+				<div class="spinner-border text-primary mb-3" role="status">
+					<span class="sr-only">Loading ...</span>
+				</div>
+				<div class="text-secondary">Making it ready ...</div>
+			</div>
+		`,
 		processing: `
-        <div class="text-center p-5 wait">
-            <div class="spinner-border text-primary mb-3" role="status">
-                <span class="sr-only">Loading ...</span>
-            </div>
-            <div class="text-secondary">Processing, please wait ...</div>
-        </div>
-    `,
+			<div class="text-center p-5 wait">
+				<div class="spinner-border text-primary mb-3" role="status">
+					<span class="sr-only">Loading ...</span>
+				</div>
+				<div class="text-secondary">Processing, please wait ...</div>
+			</div>
+		`,
 		zeroRecords: `
-        <div class="text-center p-5">
-            <h3>No match found</h3>
-            <div class="text-secondary">No records was found that matched to your request. Please check if the spelling is correct or try other keywords.</div>
-        </div>
-    `,
+			<div class="text-center p-5">
+				<h3>No match found</h3>
+				<div class="text-secondary">No records was found that matched to your request. Please check if the spelling is correct or try other keywords.</div>
+			</div>
+		`,
 		paginate: {
-			previous: `<i class="fas fa-caret-left"></i>`,
-			next: `<i class="fas fa-caret-right"></i>`,
+			previous: `<i class="fas fa-caret-left mr-1"></i><span>Previous</span>`,
+			next: `<span>Next</span><i class="fas fa-caret-right ml-1"></i>`,
 		}
 	}
 
@@ -106,7 +113,12 @@ const initDataTable = (selector = "", dtOptions = {
 		}
 	}
 	else if (dtOptions.enableButtons) dtParams = {
+		// processing: true, 
+		// serverSide: true,
 		ajax: ajax,
+		// search: {
+        //     return: true
+        // },
 		columns: dtOptions.columns,
 		order: dtOrder,
 		dom: `
@@ -269,11 +281,15 @@ const validateForm = (selector = "", validationOptions = { rules: {}, messages: 
 			messages: validationOptions.messages,
 			errorElement: 'div',
 			errorPlacement: (error, element) => {
-				error.addClass('invalid-feedback');
+				error.addClass('invalid-feedback font-weight-bold');
 				element.closest('.form-group').append(error);
 			},
-			highlight: (element) => $(element).addClass('is-invalid'),
-			unhighlight: (element) => $(element).removeClass('is-invalid'),
+			highlight: (element) => {
+				$(element).addClass('is-invalid')
+			},
+			unhighlight: (element) => {
+				$(element).removeClass('is-invalid')
+			},
 			submitHandler: validationOptions.submitHandler
 		});
 	}, false);
@@ -309,6 +325,14 @@ const formatDateTime = (datetime, format = "") => {
 /** Show/Hide Modal */
 const showModal = (selector) => ifSelectorExist(selector, () => $(selector).modal('show'));
 const hideModal = (selector) => ifSelectorExist(selector, () => $(selector).modal('hide'));
+
+
+/** Fix overlapping multiple modals */
+$(document).on('show.bs.modal', '.modal', function() {
+    const zIndex = 1040 + 10 * $('.modal:visible').length;
+    $(this).css('z-index', zIndex);
+    setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+});
 
 
 /** On modal was showned/hidden */

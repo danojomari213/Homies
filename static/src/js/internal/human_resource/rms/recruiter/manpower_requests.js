@@ -84,21 +84,40 @@ initDataTable('#manpowerRequestDT', {
             render: data => {
                 const manpowerRequestID = data.manpower_request_id, jobPost = data.job_post;
 
-                const createJobPostBtn = jobPost 
-                    ? "" 
-                    : `
-                        <div 
-                            class="dropdown-item d-flex" 
-                            role="button"
-                            onclick="createJobPost('${ manpowerRequestID }')"
-                        >
-                            <div style="width: 2rem"><i class="fas fa-edit mr-1"></i></div>
-                            <div>
-                                <div>Create Job Post</div>
-                                <div class="small">Compose available job for applicants</div>
+                const createJobPostBtn = () => {
+                    if(!jobPost) {
+                        return `
+                            <div 
+                                class="dropdown-item d-flex" 
+                                role="button"
+                                onclick="createJobPost('${ manpowerRequestID }')"
+                            >
+                                <div style="width: 2rem"><i class="fas fa-edit mr-1"></i></div>
+                                <div>
+                                    <div>Create Job Post</div>
+                                    <div class="small">Compose available job for applicants</div>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `
+                    } else return ''
+                }
+
+                const viewJobPost = () => {
+                    if(jobPost) {
+                        return `
+                            <a 
+                                class="dropdown-item d-flex" 
+                                href="${ ROUTE.WEB.R }job-posts/${ jobPost.job_post_id }"
+                            >
+                                <div style="width: 2rem"><i class="fas fa-briefcase mr-1"></i></div>
+                                <div>
+                                    <div>View Job Post</div>
+                                    <div class="small">View the created job post</div>
+                                </div>
+                            </a>
+                        `
+                    } else return ''
+                }
                 
                 return TEMPLATE.DT.OPTIONS(`
                     <a 
@@ -112,7 +131,8 @@ initDataTable('#manpowerRequestDT', {
                         </div>
                     </a>
 
-                    ${ createJobPostBtn }
+                    ${ createJobPostBtn() }
+                    ${ viewJobPost() }
                 `)
             }
         }
@@ -211,4 +231,4 @@ ifSelectorExist('#manpowerRequestDocumentContainer', () => {
 /** Create Job Post */
 const createJobPost = (requisitionID) => location.assign(`${ ROUTE.WEB.R }add-job-post/${ requisitionID }`);
 
-const createJobPostFromViewRequest = () => createJobPost(window.location.pathname.split('/')[3]);
+const createJobPostFromViewRequest = () => createJobPost(getPathnamePart(1));

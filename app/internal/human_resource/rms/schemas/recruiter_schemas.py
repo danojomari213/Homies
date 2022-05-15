@@ -7,7 +7,6 @@ from app.internal.human_resource.rms.schemas.user_schemas import ShowUserInfo
 from app.internal.human_resource.rms.schemas.deptMngr_schemas \
     import ShowEmploymentType, ShowPositionForManpowerRequest
 
-
 # Manpower Request
 class ManpowerRequest(BaseModel):
     manpower_request_id: str
@@ -94,6 +93,7 @@ class Applicant(BaseModel):
     contact_number: str
     email: str
     resume: str
+    status: str
     created_at: datetime
     updated_at: Optional[datetime]
 
@@ -153,7 +153,6 @@ class ShowApplicant(Applicant):
 
     class Config():
         orm_mode = True
-
 
 # Applicant Evaluation
 class ApplicantEvaluation(BaseModel):

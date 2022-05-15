@@ -29,10 +29,10 @@ ifSelectorExist('#createJobPostForm', () => {
                     ? result.forEach(c => jobCategory.append(`<option value="${ c.job_category_id }">${ c.name }</option>`))
                     : jobCategory.append(`<option disabled>No data</option>`)
 
-                /** Employment Type For Add Select2 */
+                /** Job Category For Add Select2 */
                 $('#jobCategory').select2({
                     placeholder: "Please select a category",
-                    minimumResultsForSearch: -1,
+                    // minimumResultsForSearch: -1,
                 });
             }
         }
@@ -46,7 +46,7 @@ ifSelectorExist('#createJobPostForm', () => {
     });
 
     // Get the requisition ID from the URL
-    const manpowerRequestID = window.location.pathname.split('/')[3];
+    const manpowerRequestID = getPathnamePart(1);
 
     /** Get Manpower Request Information */
     GET_ajax(`${ ROUTE.API.R }manpower-requests/${ manpowerRequestID }`, {
@@ -76,7 +76,10 @@ ifSelectorExist('#createJobPostForm', () => {
                     hideElement('#salaryRangeField');
                     return TEMPLATE.UNSET('No salary has been set');
                 } else {
-                    return `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+                    return `
+                        <div>Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}</div>
+                        <div>Average: ${formatCurrency((minSalary + maxSalary)/2)}</div>
+                    `;
                 }
             });
 
@@ -240,6 +243,10 @@ ifSelectorExist('#createJobPostForm', () => {
             enableElement('#postBtn');
         }
     });
+
+    /** Remove Loader and Display the form */
+    $('#createJobPostFormLoader').remove();
+    showElement('#createJobPostFormContainer');
 });
 
 /** Set Expriration Date On Change */
@@ -354,10 +361,34 @@ initDataTable('#jobPostsDT', {
         {
             data: null,
             render: data => {
-                const applicants = data.applicants.length;
-                return applicants == 0 
-                    ? TEMPLATE.UNSET('No applicants yet')
-                    : `${ applicants } applicant${ applicants > 1 ? 's' : '' }`
+                const applicants = data.applicants;
+                if(applicants.length == 0) {
+                    return TEMPLATE.UNSET('No applicants yet')
+                } else {
+                    let applicantsOnProcess = 0;
+                    applicants.forEach(a => {
+                        if(a.status == "For evaluation") applicantsOnProcess++;
+                    });
+
+                    const evaluated = () => {
+                        if(applicantsOnProcess > 0) {
+                            return TEMPLATE.SUBTEXT(`
+                                <i class="fas fa-exclamation-triangle text-warning mr-1"></i>
+                                <span>${ applicantsOnProcess } of them are on process</span>
+                            `)
+                        } else {
+                            return TEMPLATE.SUBTEXT(`
+                                <i class="fas fa-check text-primary mr-1"></i>
+                                <span>All of them are evaluated</span>
+                            `)
+                        }
+                    }
+
+                    return `
+                        <div>${ applicants.length } ${ pluralize('applicant', applicants.length) }</div>
+                        ${ evaluated() }
+                    `
+                }
             }
         },
 
@@ -516,7 +547,7 @@ const getJobPostDetails = () => GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID
             `
         
             return `
-                <a class="btn btn-sm btn-secondary btn-block" target="_blank" href="${ BASE_URL_WEB }careers/${ jobPostID }">
+                <a class="btn btn-sm btn-secondary btn-block" target="_blank" href="/careers/${ jobPostID }">
                     ${ TEMPLATE.ICON_LABEL('eye', 'View post in public portal') }
                 </a>
                 <a class="btn btn-sm btn-secondary btn-block" href="${ ROUTE.WEB.R }job-posts/${ jobPostID }/applicants">
@@ -555,7 +586,10 @@ const getJobPostDetails = () => GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID
             if(isEmptyOrNull(minSalary) && isEmptyOrNull(minSalary)) {
                 hideElement('#salaryRangeField');
                 return TEMPLATE.UNSET('Unset')
-            } else return `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+            } else return `
+                <div>Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}</div>
+                <div>Average: ${formatCurrency((minSalary + maxSalary)/2)}</div>
+            `;
         });
 
         // Set Deadline
@@ -744,7 +778,7 @@ ifSelectorExist('#editJobPostForm', () => {
                 /** Employment Type For Add Select2 */
                 $('#jobCategory').select2({
                     placeholder: "Please select a category",
-                    minimumResultsForSearch: -1,
+                    // minimumResultsForSearch: -1,
                 });
             }
         }
@@ -758,7 +792,7 @@ ifSelectorExist('#editJobPostForm', () => {
     });
 
     /** Get Job Post ID from the URL */
-    const jobPostID = window.location.pathname.split("/")[3];
+    const jobPostID = getPathnamePart(1);
 
     /** Get Job Post Information */
     GET_ajax(`${ ROUTE.API.R }job-posts/${ jobPostID }`, {
@@ -792,7 +826,10 @@ ifSelectorExist('#editJobPostForm', () => {
                 if(isEmptyOrNull(minSalary) && isEmptyOrNull(minSalary)) {
                     hideElement('#salaryRangeField');
                     return TEMPLATE.UNSET('No status')
-                } else return `${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}`;
+                } else return `
+                    <div>Range: ${formatCurrency(minSalary)} - ${formatCurrency(maxSalary)}</div>
+                    <div>Average: ${formatCurrency((minSalary + maxSalary)/2)}</div>
+                `;
             });
 
             // Set Deadline
